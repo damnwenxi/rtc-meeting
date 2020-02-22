@@ -1,60 +1,42 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-02-22 13:22:22
+ * @LastEditTime: 2020-02-22 22:34:08
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /rtc-meeting/rtc-front/src/App.vue
+ -->
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-    <v-content>
-      <HelloWorld/>
-    </v-content>
+    <NavBar />
+    <v-sheet id="container" class="overflow-y-auto">
+      <v-container style="height: 1500px;">
+        <router-view></router-view>
+      </v-container>
+    </v-sheet>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
-
+import NavBar from './components/NavBar'
 export default {
   name: 'App',
 
   components: {
-    HelloWorld,
+    NavBar
   },
 
   data: () => ({
     //
-  }),
-};
+  })
+}
 </script>
+
+<style lang="scss" scoped>
+#container {
+  position: absolute;
+  width: 100%;
+  top: 56px;
+  bottom: 0;
+}
+</style>
