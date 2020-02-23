@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime: 2020-02-23 23:36:45
+ * @LastEditTime: 2020-02-24 00:01:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Home.vue
@@ -13,8 +13,8 @@
       <div class="content">
         <h1 class="home-title">WebRTC视频会议</h1>
         <div class="btn-wrap">
-          <v-btn class="join" large>加入会议</v-btn>
-          <v-btn class="create" large>创建会议</v-btn>
+          <v-btn @click="joinRoom()" class="join" large>加入会议</v-btn>
+          <v-btn @click="createRoom()" class="create" large>创建会议</v-btn>
         </div>
       </div>
     </div>
@@ -35,11 +35,27 @@
         <span class="number">453人</span>
       </div>
     </div>
+
+    <JoinRoom ref="joinModal" />
   </div>
 </template>
  
- <script>
-export default {}
+<script>
+import JoinRoom from '../components/JoinRoom'
+export default {
+  data() {
+    return {}
+  },
+  components: {
+    JoinRoom
+  },
+  methods: {
+    joinRoom() {
+      this.$refs.joinModal.show()
+    },
+    createRoom() {}
+  }
+}
 </script>
  
 <style lang="scss" scoped>
