@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime: 2020-02-22 22:34:08
+ * @LastEditTime: 2020-02-23 23:45:57
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/App.vue
@@ -9,11 +9,9 @@
 <template>
   <v-app>
     <NavBar />
-    <v-sheet id="container" class="overflow-y-auto">
-      <v-container>
-        <router-view></router-view>
-      </v-container>
-    </v-sheet>
+    <div id="container" class>
+      <router-view></router-view>
+    </div>
   </v-app>
 </template>
 
