@@ -10,7 +10,7 @@
   <v-app>
     <NavBar />
     <v-sheet id="container" class="overflow-y-auto">
-      <v-container style="height: 1500px;">
+      <v-container>
         <router-view></router-view>
       </v-container>
     </v-sheet>
