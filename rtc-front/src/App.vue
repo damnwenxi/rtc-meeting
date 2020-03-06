@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime: 2020-02-23 23:45:57
+ * @LastEditTime: 2020-03-06 21:44:40
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/App.vue
@@ -26,7 +26,15 @@ export default {
 
   data: () => ({
     //
-  })
+  }),
+
+  created() {
+    window.trace = text => {
+      text = text.trim()
+      const now = (window.performance.now() / 1000).toFixed(3)
+      console.log(now, text)
+    }
+  }
 }
 </script>
 
