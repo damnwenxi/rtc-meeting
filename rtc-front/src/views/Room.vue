@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-06 23:04:37
+ * @LastEditTime: 2020-03-07 18:45:43
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
@@ -10,13 +10,14 @@
   <div class="room">
     <div class="main-user-tip">{{mainUser}}</div>
 
-    <button class="test-btn" @click="getRemoteOffers()">get offer</button>
-    <video id="main-video" autoplay playsinline class="video" src></video>
-    <!-- <div class="btn-wrap">
-      <v-btn>start</v-btn>
-      <v-btn @click="sendMessage()">call</v-btn>
-      <v-btn>hang up</v-btn>
-    </div>-->
+    <video id="local-video" autoplay playsinline class="video" src></video>
+    <video id="remote-video" autoplay playsinline class="video" src></video>
+
+    <div class="btn-wrap">
+      <v-btn @click="start()">start</v-btn>
+      <v-btn @click="call()">call</v-btn>
+      <v-btn @click="join()">join</v-btn>
+    </div>
 
     <div class="footer-bar">
       <div class="user-count">
@@ -58,19 +59,59 @@ export default {
       roomTitle: '会议标题',
       userCount: 4,
       showChat: false,
+      // pcList peerConnection 列表
+      pcList: [],
       // ICE服务器列表
-      turnServers: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+      pcConfig: {
+        iceServers: [
+          { urls: 'stun:23.21.150.121' },
+          { urls: 'stun:stun.l.google.com:19302' },
+          {
+            urls: 'turn:numb.viagenie.ca',
+            credential: 'webrtcdemo',
+            username: 'louis%40mozilla.com'
+          }
+        ]
+      }
     }
   },
-  created() {},
-  mounted() {
-    this.localVideo = document.getElementById('main-video')
-    navigator.mediaDevices
-      .getUserMedia(this.mediaStreamConstraints)
-      // 获取本地媒体流
-      .then(this.gotLocalMediaStream)
-      .catch(this.handleLocalMediaStreamError)
+  created() {
+    this.requestTurn(
+      'https://computeengineondemand.appspot.com/turn?username=41784574&key=4080218913'
+    )
+
+    socket.removeAllListeners()
+    socket.on('message', message => {
+      console.log(message)
+
+      if (message.type === 'answer_res') {
+        if (message.content) {
+          const remoteDesc = new RTCSessionDescription(message.content)
+          let pc = this.pcList[0]
+          if (!pc.remoteDescription) {
+            pc.setRemoteDescription(remoteDesc)
+            console.log(pc)
+          }
+        }
+      } else if (message.type === 'offer_res') {
+        if (message.content) {
+          let pc = this.pcList[0]
+          pc.setRemoteDescription(new RTCSessionDescription(message.content))
+          pc.createAnswer().then(answer => {
+            pc.setLocalDescription(answer)
+            socket.send({
+              id: '3211',
+              ts: Date.now(),
+              type: 'answer',
+              content: answer
+            })
+            console.log(pc)
+          })
+        }
+      }
+    })
   },
+  mounted() {},
   computed: {
     videoTracks() {
       if (this.localStream) {
@@ -79,16 +120,29 @@ export default {
     },
     audioTracks() {
       if (this.localStream) {
-        return this.localVideo.getAudioTracks()
+        return this.localStream.getAudioTracks()
       }
     }
   },
   methods: {
+    start() {
+      this.localVideo = document.getElementById('local-video')
+      navigator.mediaDevices
+        .getUserMedia(this.mediaStreamConstraints)
+        // 获取本地媒体流
+        .then(this.gotLocalMediaStream)
+        .catch(this.handleLocalMediaStreamError)
+    },
+    call() {
+      this.createPeerConnection()
+    },
+    join() {
+      this.getRemoteOffers()
+    },
     // 获取到本地媒体流
     gotLocalMediaStream(mediaStream) {
       this.localStream = mediaStream
       this.localVideo.srcObject = this.localStream
-      this.createPeerConnection()
     },
     // 获取本地媒体流失败回调
     handleLocalMediaStreamError(err) {
@@ -99,41 +153,53 @@ export default {
       this.showChat = !this.showChat
     },
     // 创建rtc连接
-    async createPeerConnection() {
-      let peerConnection = new RTCPeerConnection(this.turnServers)
-      trace('create peerConnection')
-      console.log(peerConnection)
-
-      const offer = await peerConnection.createOffer()
-      // create offer 后通过socket.io发送给ws服务器
-      socket.send('offer', {
-        id: '12345',
-        ts: Date.now(),
-        content: offer
-      })
-
+    createPeerConnection() {
+      let peerConnection = new RTCPeerConnection(this.pcConfig)
+      peerConnection
+        .createOffer()
+        .then(offer => {
+          console.log(offer)
+          peerConnection.setLocalDescription(offer).then(() => {
+            console.log('set local description success')
+          })
+          socket.send({
+            id: '12345',
+            ts: Date.now(),
+            type: 'offer',
+            content: offer
+          })
+        })
+        .catch(e => {
+          console.log('create offer failed.')
+        })
       // 给rtc连接添加事件
-      peerConnection.addEventListener('icecandidate', event => {
+      peerConnection.onicecandidate = event => {
         console.log(event)
-      })
-      peerConnection.addEventListener(
-        'iceconnectionstatechange',
-        this.handleConnectionChange()
-      )
-      console.log(peerConnection)
-      return peerConnection
-    },
-    // 请求ws，获取其他人的offer
-    getRemoteOffers() {
-      socket.send('offer_req', {
-        id: '12345',
-        ts: Date.now()
-      })
+      }
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log(event)
+      }
+      peerConnection.addStream(this.localStream)
 
-      socket.removeAllListeners(['offer_res'])
-      socket.on('offer_res', data => {
-        console.log('收到的offer是:')
-        console.log(data)
+      this.pcList.push(peerConnection)
+    },
+    // 应答方请求ws，获取其他人的offer建立连接
+    getRemoteOffers() {
+      const peerConnection = new RTCPeerConnection(this.pcConfig)
+      // 给rtc连接添加事件
+      peerConnection.onicecandidate = event => {
+        console.log(event)
+      }
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log(event)
+      }
+      peerConnection.onicecandidateerror = event => {
+        console.log(event)
+      }
+      peerConnection.addStream(this.localStream)
+      this.pcList.push(peerConnection)
+      socket.send({
+        type: 'offer_req'
       })
     },
     // 连接建立成功回调
@@ -145,6 +211,29 @@ export default {
     // 连接改变回调
     handleConnectionChange(event) {
       console.log(event)
+    },
+
+    // ice连接失败回调
+    handleIceFailed(event) {
+      console.log(event)
+    },
+
+    // ice服务器获取
+    requestTurn(turnURL) {
+      // No TURN server. Get one from computeengineondemand.appspot.com:
+      var xhr = new XMLHttpRequest()
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var turnServer = JSON.parse(xhr.responseText)
+          console.log('Got TURN server: ', turnServer)
+          this.pcConfig.iceServers.push({
+            urls: 'turn:' + turnServer.username + '@' + turnServer.turn,
+            credential: turnServer.password
+          })
+        }
+      }
+      xhr.open('GET', turnURL, true)
+      xhr.send()
     }
   }
 }
@@ -228,6 +317,13 @@ export default {
     position: absolute;
     width: 100%;
     height: 100%;
+  }
+
+  .video {
+    top: 100px;
+    width: 300px;
+    height: 200px;
+    background: #000;
   }
 }
 </style>
