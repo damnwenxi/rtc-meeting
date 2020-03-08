@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-07 18:45:43
+ * @LastEditTime: 2020-03-08 17:22:29
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
@@ -64,22 +64,16 @@ export default {
       // ICE服务器列表
       pcConfig: {
         iceServers: [
-          { urls: 'stun:23.21.150.121' },
-          { urls: 'stun:stun.l.google.com:19302' },
           {
-            urls: 'turn:numb.viagenie.ca',
-            credential: 'webrtcdemo',
-            username: 'louis%40mozilla.com'
+            urls: 'turn:129.211.64.178:3478',
+            username: 'kefeng',
+            credential: '123456'
           }
         ]
       }
     }
   },
   created() {
-    this.requestTurn(
-      'https://computeengineondemand.appspot.com/turn?username=41784574&key=4080218913'
-    )
-
     socket.removeAllListeners()
     socket.on('message', message => {
       console.log(message)
@@ -108,10 +102,21 @@ export default {
             console.log(pc)
           })
         }
+      } else if (message.type === 'icecandidate_res') {
+        console.log(this.pcList[0])
+        debugger
+        try {
+          this.pcList[0].addIceCandidate(message.content)
+        } catch (e) {
+          console.log(e)
+        }
       }
     })
   },
-  mounted() {},
+  mounted() {
+    this.localVideo = document.getElementById('local-video')
+    this.remoteVideo = document.getElementById('remote-video')
+  },
   computed: {
     videoTracks() {
       if (this.localStream) {
@@ -126,7 +131,6 @@ export default {
   },
   methods: {
     start() {
-      this.localVideo = document.getElementById('local-video')
       navigator.mediaDevices
         .getUserMedia(this.mediaStreamConstraints)
         // 获取本地媒体流
@@ -155,6 +159,11 @@ export default {
     // 创建rtc连接
     createPeerConnection() {
       let peerConnection = new RTCPeerConnection(this.pcConfig)
+
+      // 这里是个巨坑，要在createOffer之前把媒体流挂载到连接上，不然永远不会触发icecandidate
+      // 挖个坟给自己
+      peerConnection.addStream(this.localStream)
+
       peerConnection
         .createOffer()
         .then(offer => {
@@ -173,43 +182,37 @@ export default {
           console.log('create offer failed.')
         })
       // 给rtc连接添加事件
-      peerConnection.onicecandidate = event => {
-        console.log(event)
-      }
-      peerConnection.oniceconnectionstatechange = event => {
-        console.log(event)
-      }
-      peerConnection.addStream(this.localStream)
+      peerConnection.onicecandidate = this.icecandidateHandle
+      peerConnection.oniceconnectionstatechange = this.icecandidateHandle
+      peerConnection.onaddstream = this.remoteStreamAddHandle
 
       this.pcList.push(peerConnection)
     },
     // 应答方请求ws，获取其他人的offer建立连接
     getRemoteOffers() {
       const peerConnection = new RTCPeerConnection(this.pcConfig)
-      // 给rtc连接添加事件
-      peerConnection.onicecandidate = event => {
-        console.log(event)
-      }
-      peerConnection.oniceconnectionstatechange = event => {
-        console.log(event)
-      }
-      peerConnection.onicecandidateerror = event => {
-        console.log(event)
-      }
       peerConnection.addStream(this.localStream)
+      // 给rtc连接添加事件
+      peerConnection.onicecandidate = this.icecandidateHandle
+      peerConnection.oniceconnectionstatechange = this.icecandidateHandle
+      peerConnection.onicecandidateerror = this.icecandidateErrorHandle
+      peerConnection.onaddstream = this.remoteStreamAddHandle
       this.pcList.push(peerConnection)
       socket.send({
         type: 'offer_req'
       })
     },
-    // 连接建立成功回调
-    handleConnection(event) {
-      console.log(event)
-      // const peerConnection = event.target
-      // const iceCandidate = event.candidate
+    // ice连接成功回调
+    icecandidateHandle(event) {
+      if (event && event.candidate) {
+        socket.send({
+          type: 'icecandidate',
+          content: event.candidate
+        })
+      }
     },
-    // 连接改变回调
-    handleConnectionChange(event) {
+    // ice连接错误回调
+    icecandidateErrorHandle(event) {
       console.log(event)
     },
 
@@ -218,22 +221,10 @@ export default {
       console.log(event)
     },
 
-    // ice服务器获取
-    requestTurn(turnURL) {
-      // No TURN server. Get one from computeengineondemand.appspot.com:
-      var xhr = new XMLHttpRequest()
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          var turnServer = JSON.parse(xhr.responseText)
-          console.log('Got TURN server: ', turnServer)
-          this.pcConfig.iceServers.push({
-            urls: 'turn:' + turnServer.username + '@' + turnServer.turn,
-            credential: turnServer.password
-          })
-        }
+    remoteStreamAddHandle(event) {
+      if (event && event.stream) {
+        this.remoteVideo.srcObject = event.stream
       }
-      xhr.open('GET', turnURL, true)
-      xhr.send()
     }
   }
 }

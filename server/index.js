@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-07 18:26:41
+ * @LastEditTime: 2020-03-08 17:06:04
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -17,10 +17,7 @@ app.get('/', (req, res) => {
 let offer = ''
 
 io.on('connection', socket => {
-  console.log('user connected.')
-
   socket.on('message', message => {
-    console.log(message)
     if (message.type === 'offer') {
       offer = message.content
     }
@@ -36,6 +33,13 @@ io.on('connection', socket => {
       socket.emit('message', {
         type: 'offer_res',
         content: offer
+      })
+    }
+
+    if (message.type === 'icecandidate') {
+      socket.broadcast.emit('message', {
+        type: 'icecandidate_res',
+        content: message.content
       })
     }
   })

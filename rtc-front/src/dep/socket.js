@@ -1,7 +1,7 @@
 /*
  * @Author: kefeng
  * @Date: 2020-03-06 22:19:46
- * @LastEditTime: 2020-03-07 17:36:30
+ * @LastEditTime: 2020-03-08 16:20:21
  * @LastEditors: Please set LastEditors
  * @Description: socket封装
  * @FilePath: /rtc-meeting/rtc-front/src/dep/socket.js
