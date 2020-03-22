@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime: 2020-02-24 00:01:32
+ * @LastEditTime: 2020-03-22 22:45:42
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Home.vue
@@ -37,23 +37,30 @@
     </div>
 
     <JoinRoom ref="joinModal" />
+
+    <CreateRoom ref="createModal" />
   </div>
 </template>
  
 <script>
 import JoinRoom from '../components/JoinRoom'
+import CreateRoom from '../components/CreateRoom'
+
 export default {
   data() {
     return {}
   },
   components: {
-    JoinRoom
+    JoinRoom,
+    CreateRoom
   },
   methods: {
     joinRoom() {
       this.$refs.joinModal.show()
     },
-    createRoom() {}
+    createRoom() {
+      this.$refs.createModal.show()
+    }
   }
 }
 </script>

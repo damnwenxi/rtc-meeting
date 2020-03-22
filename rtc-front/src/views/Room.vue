@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-08 17:22:29
+ * @LastEditTime: 2020-03-22 22:21:51
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
@@ -70,27 +70,49 @@ export default {
             credential: '123456'
           }
         ]
+      },
+      me: {
+        userName: 'kf',
+        id: 123
       }
     }
   },
   created() {
+    // 在这里处理所有的建立连接相关的websocket信息
+    // 这里要先清除所有的监听事件，否则会引发重复监听
+    // 客户端只监听message这一个事件，根据message的type不同作出不同反应
     socket.removeAllListeners()
-    socket.on('message', message => {
-      console.log(message)
-
-      if (message.type === 'answer_res') {
-        if (message.content) {
-          const remoteDesc = new RTCSessionDescription(message.content)
-          let pc = this.pcList[0]
-          if (!pc.remoteDescription) {
-            pc.setRemoteDescription(remoteDesc)
-            console.log(pc)
+    socket.on('message', data => {
+      // 这里监听到的offer是新加入用户发来的
+      if (data.type === 'offer') {
+        if (data.offer) {
+          try {
+            // 新建一个peerConnection
+            this.createPeerConnection(data)
+          } catch (error) {
+            console.log('建立连接失败')
           }
         }
-      } else if (message.type === 'offer_res') {
+      }
+      if (data.type === 'answer') {
+        if (data.answer) {
+          // 设置pc的answer
+          this.setAnswerForRemote(answer)
+          const remoteDesc = new RTCSessionDescription(message.content)
+          let pc = this.pcList[0]
+
+          // 这里分辨是发起端还是接受端，发起端收到远端的answer之前必然已经set了localDescription，
+          // 而且必然没有setRemoteDescription
+          if (!pc.remoteDescription) {
+            pc.setRemoteDescription(remoteDesc)
+            // 此步完成即建立了pc
+          }
+        }
+      } else if (message.type === 'offer') {
         if (message.content) {
           let pc = this.pcList[0]
           pc.setRemoteDescription(new RTCSessionDescription(message.content))
+          // 远端（相对于自己来说）sdp set完了set自己的sdp，然后将asnwer发给对方
           pc.createAnswer().then(answer => {
             pc.setLocalDescription(answer)
             socket.send({
@@ -104,7 +126,6 @@ export default {
         }
       } else if (message.type === 'icecandidate_res') {
         console.log(this.pcList[0])
-        debugger
         try {
           this.pcList[0].addIceCandidate(message.content)
         } catch (e) {
@@ -156,37 +177,57 @@ export default {
     toggleChat() {
       this.showChat = !this.showChat
     },
-    // 创建rtc连接
-    createPeerConnection() {
+
+    /**
+     * @description 拿到offer之后建立新的连接
+     * @params: Object
+     */
+    createPeerConnection(data) {
       let peerConnection = new RTCPeerConnection(this.pcConfig)
+      this.pcList.push({
+        user: data.user_name,
+        pc: peerConnection
+      })
 
       // 这里是个巨坑，要在createOffer之前把媒体流挂载到连接上，不然永远不会触发icecandidate
       // 挖个坟给自己
       peerConnection.addStream(this.localStream)
-
-      peerConnection
-        .createOffer()
-        .then(offer => {
-          console.log(offer)
-          peerConnection.setLocalDescription(offer).then(() => {
-            console.log('set local description success')
-          })
-          socket.send({
-            id: '12345',
-            ts: Date.now(),
-            type: 'offer',
-            content: offer
-          })
-        })
-        .catch(e => {
-          console.log('create offer failed.')
-        })
-      // 给rtc连接添加事件
+      // 给peerConnection绑定事件
       peerConnection.onicecandidate = this.icecandidateHandle
       peerConnection.oniceconnectionstatechange = this.icecandidateHandle
       peerConnection.onaddstream = this.remoteStreamAddHandle
 
-      this.pcList.push(peerConnection)
+      peerConnection.createAnswer().then(answer => {
+        try {
+          peerConnection.setLocalDescription(answer)
+          socket.send('message', {
+            room_id: data.room_id,
+            answer: answer,
+            user_name: data.user_name
+          })
+        } catch (error) {
+          console.log('setLocalDescription failed')
+        }
+      })
+
+      // peerConnection
+      //   .createOffer()
+      //   .then(offer => {
+      //     console.log(offer)
+      //     peerConnection.setLocalDescription(offer).then(() => {
+      //       console.log('set local description success')
+      //     })
+      //     socket.send({
+      //       id: '12345',
+      //       ts: Date.now(),
+      //       type: 'offer',
+      //       content: offer
+      //     })
+      //   })
+      //   .catch(e => {
+      //     console.log('create offer failed.')
+      //   })
+      // 给rtc连接添加事件
     },
     // 应答方请求ws，获取其他人的offer建立连接
     getRemoteOffers() {
