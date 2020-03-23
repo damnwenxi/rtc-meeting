@@ -6,12 +6,24 @@
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
  */
-const app = require('express')()
+const express = require('express')
+const app = express()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 
+const user = require('./requests/user')
+const room = require('./requests/room')
+
+
+app.use('/user', user)
+app.use('/room', room)
+
 app.get('/', (req, res) => {
   res.send('hello world')
+})
+
+app.post('/createRoom', (req, res) => {
+
 })
 
 let offer = ''

@@ -1,18 +1,10 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime: 2020-03-22 23:08:57
+ * @LastEditTime: 2020-03-23 21:27:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/components/CreateRoom.vue
- -->
-<!--
- * @Author: your name
- * @Date: 2020-02-23 23:54:48
- * @LastEditTime: 2020-02-24 00:21:49
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/components/JoinRoom.vue
  -->
 <template>
   <v-row justify="center">
@@ -74,6 +66,13 @@ export default {
       console.log({
         nickName: this.nickName,
         joinPassword: this.joinPassword
+      })
+
+      router.push({
+        name: 'Room',
+        params: {
+          code: this.joinPassword
+        }
       })
     }
   },

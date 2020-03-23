@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime: 2020-02-22 22:27:58
+ * @LastEditTime: 2020-03-23 21:25:06
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/router/index.js
@@ -34,7 +34,7 @@ const routes = [
     component: Register
   },
   {
-    path: '/room',
+    path: '/room/:code',
     name: 'Room',
     component: Room
   },
