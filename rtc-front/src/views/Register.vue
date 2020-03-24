@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime: 2020-03-23 23:22:41
+ * @LastEditTime: 2020-03-24 23:31:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Register.vue
@@ -59,6 +59,8 @@
 </template>
 
 <script>
+import * as service from '../service/service'
+
 export default {
   data() {
     return {
@@ -78,18 +80,22 @@ export default {
         v => (v && v.length <= 16 && v.length >= 6) || '请输入6-16位密码'
       ],
       passwordRules2: [
-        () => this.password2 === this.password1 || '两次密码不一致'
+        v => !!v || '请输入确认密码',
+        v => this.password2 === this.password1 || '两次密码不一致'
       ]
     }
   },
   methods: {
     register() {
-      let newUser = {
-        username: this.username,
-        email: this.email,
-        password1: this.password1,
-        password2: this.password2
-      }
+      service
+        .register({
+          name: this.username,
+          email: this.email,
+          password: this.password1
+        })
+        .then(res => {
+          console.log(res)
+        })
     },
     reset() {
       this.$refs.registerForm.reset()
