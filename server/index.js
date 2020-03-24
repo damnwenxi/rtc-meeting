@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-23 23:57:25
+ * @LastEditTime: 2020-03-25 00:20:20
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -12,10 +12,13 @@ const app = express()
 const query = require('./mysql/index')
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
+const bodyParser = require('body-parser')
 
 const user = require('./requests/user')
 const room = require('./requests/room')
 
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 app.use('/user', user)
 app.use('/room', room)

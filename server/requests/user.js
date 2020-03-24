@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-03-23 21:37:21
- * @LastEditTime: 2020-03-23 21:46:22
+ * @LastEditTime: 2020-03-25 00:10:47
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/requests/user.js
@@ -20,6 +20,7 @@ user.post('/login', (req, res) => {
 })
 
 user.post('/register', (req, res) => {
+  console.log(req.body)
   res.send('this is the user register api')
 })
 
