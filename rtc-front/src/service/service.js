@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-03-24 23:01:12
- * @LastEditTime: 2020-03-25 00:08:29
+ * @LastEditTime: 2020-03-25 23:07:21
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/service/service.js
@@ -25,7 +25,7 @@ export function register(params) {
  */
 export function login(params) {
   return axios.post('/api/user/login', {
-    user: params.user,
+    name: params.name,
     password: params.password
   })
 }

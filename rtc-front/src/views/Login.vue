@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:00
- * @LastEditTime: 2020-03-23 23:21:58
+ * @LastEditTime: 2020-03-25 23:05:22
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Login.vue
@@ -48,6 +48,8 @@
 </template>
 
 <script>
+import { login } from '../service/service'
+
 export default {
   data() {
     return {
@@ -68,7 +70,12 @@ export default {
   },
   methods: {
     login() {
-      console.log('login')
+      login({
+        name: this.username,
+        password: this.password
+      }).then(res => {
+        console.log(res)
+      })
     },
     reset() {
       this.$refs.loginForm.reset()

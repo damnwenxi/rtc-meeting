@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime: 2020-03-24 23:31:34
+ * @LastEditTime: 2020-03-25 23:03:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Register.vue
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import * as service from '../service/service'
+import { register } from '../service/service'
 
 export default {
   data() {
@@ -87,15 +87,13 @@ export default {
   },
   methods: {
     register() {
-      service
-        .register({
-          name: this.username,
-          email: this.email,
-          password: this.password1
-        })
-        .then(res => {
-          console.log(res)
-        })
+      register({
+        name: this.username,
+        email: this.email,
+        password: this.password1
+      }).then(res => {
+        console.log(res)
+      })
     },
     reset() {
       this.$refs.registerForm.reset()
