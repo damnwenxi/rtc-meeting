@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-25 00:20:20
+ * @LastEditTime: 2020-03-27 23:30:44
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -45,8 +45,10 @@ io.on('connection', socket => {
   // join room
   socket.on('join_room', data => {
     socket.join(data.room_id)
+    console.log(data.user_name + '加入了房间：' + data.room_id)
     // 加入房间后广播一条消息到房间
-    io.to(data.room_id).emit('user_join', {
+    io.to(data.room_id).emit('message', {
+      type: 'user_join',
       user_name: data.user_name,
       room_id: data.room_id
     })
