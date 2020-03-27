@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime: 2020-03-23 21:27:12
+ * @LastEditTime: 2020-03-27 23:26:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -53,9 +53,11 @@ export default {
       dialog: false,
       needPassword: false,
       joinPassword: '',
-      nickName: Math.random()
-        .toString()
-        .substring(3, 8)
+      nickName:
+        '编号' +
+        Math.random()
+          .toString()
+          .substring(3, 8)
     }
   },
   methods: {
@@ -68,10 +70,16 @@ export default {
         joinPassword: this.joinPassword
       })
 
-      router.push({
+      // TODO: 这里应该要发请求给后台，后台创建会议保存到数据库并返回会议码，前端创建会议无法保证会议码不重复
+
+      this.$router.push({
         name: 'Room',
         params: {
-          code: this.joinPassword
+          password: this.joinPassword,
+          code: Math.random()
+            .toString()
+            .substring(2, 8),
+          name: this.nickName
         }
       })
     }

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime: 2020-03-25 23:03:12
+ * @LastEditTime: 2020-03-27 22:48:56
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Register.vue
@@ -93,6 +93,12 @@ export default {
         password: this.password1
       }).then(res => {
         console.log(res)
+        if (res.data && res.data.msg) {
+          this.$emit('tip', {
+            code: res.data.code,
+            msg: res.data.msg
+          })
+        }
       })
     },
     reset() {

@@ -1,14 +1,18 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-22 22:21:51
+ * @LastEditTime: 2020-03-27 23:36:20
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
  -->
 <template>
   <div class="room">
-    <div class="main-user-tip">{{mainUser}}</div>
+    <div class="room-info-tip">
+      <span class="room-code" v-if="code">参加码： {{code}}</span>
+      <br />
+      <span class="room-password" v-if="password">密码： {{password}}</span>
+    </div>
 
     <video id="local-video" autoplay playsinline class="video" src></video>
     <video id="remote-video" autoplay playsinline class="video" src></video>
@@ -74,15 +78,37 @@ export default {
       me: {
         userName: 'kf',
         id: 123
-      }
+      },
+      // 房间id / 参加码
+      code: this.$route.params.code,
+      password: this.$route.params.password,
+      name: this.$route.params.name
     }
   },
   created() {
+    if (!this.code) {
+      this.$emit('tip', {
+        code: -1,
+        msg: '会议室不存在'
+      })
+      return
+    }
+
+    // 第一步加入教室
+    socket.emit('join_room', {
+      user_name: this.name,
+      room_id: this.code
+    })
     // 在这里处理所有的建立连接相关的websocket信息
     // 这里要先清除所有的监听事件，否则会引发重复监听
     // 客户端只监听message这一个事件，根据message的type不同作出不同反应
     socket.removeAllListeners()
     socket.on('message', data => {
+      // 用户加入
+      if (data.type === 'user_join') {
+        console.log(data.user_name + '加入了房间' + data.room_id)
+        this.start()
+      }
       // 这里监听到的offer是新加入用户发来的
       if (data.type === 'offer') {
         if (data.offer) {
@@ -108,29 +134,29 @@ export default {
             // 此步完成即建立了pc
           }
         }
-      } else if (message.type === 'offer') {
-        if (message.content) {
-          let pc = this.pcList[0]
-          pc.setRemoteDescription(new RTCSessionDescription(message.content))
-          // 远端（相对于自己来说）sdp set完了set自己的sdp，然后将asnwer发给对方
-          pc.createAnswer().then(answer => {
-            pc.setLocalDescription(answer)
-            socket.send({
-              id: '3211',
-              ts: Date.now(),
-              type: 'answer',
-              content: answer
-            })
-            console.log(pc)
-          })
-        }
-      } else if (message.type === 'icecandidate_res') {
-        console.log(this.pcList[0])
-        try {
-          this.pcList[0].addIceCandidate(message.content)
-        } catch (e) {
-          console.log(e)
-        }
+        // } else if (data.type === 'offer') {
+        //   if (message.content) {
+        //     let pc = this.pcList[0]
+        //     pc.setRemoteDescription(new RTCSessionDescription(message.content))
+        //     // 远端（相对于自己来说）sdp set完了set自己的sdp，然后将asnwer发给对方
+        //     pc.createAnswer().then(answer => {
+        //       pc.setLocalDescription(answer)
+        //       socket.send({
+        //         id: '3211',
+        //         ts: Date.now(),
+        //         type: 'answer',
+        //         content: answer
+        //       })
+        //       console.log(pc)
+        //     })
+        //   }
+        // } else if (message.type === 'icecandidate_res') {
+        //   console.log(this.pcList[0])
+        //   try {
+        //     this.pcList[0].addIceCandidate(message.content)
+        //   } catch (e) {
+        //     console.log(e)
+        //   }
       }
     })
   },
@@ -157,9 +183,6 @@ export default {
         // 获取本地媒体流
         .then(this.gotLocalMediaStream)
         .catch(this.handleLocalMediaStreamError)
-    },
-    call() {
-      this.createPeerConnection()
     },
     join() {
       this.getRemoteOffers()
@@ -281,17 +304,24 @@ export default {
   z-index: 1;
   background: #fff;
 
-  .main-user-tip {
+  .room-info-tip {
     position: absolute;
     top: 20px;
     left: 20px;
     border-left: 5px solid #0f4c81;
-    line-height: 40px;
     padding: 0 10px;
     border-radius: 0 5px 5px 0;
     font-size: 16px;
     color: #fff;
     background: rgba(0, 0, 0, 0.3);
+
+    .room-password {
+      font-size: 12px;
+    }
+
+    .room-code {
+      font-weight: 600;
+    }
   }
 
   .footer-bar {

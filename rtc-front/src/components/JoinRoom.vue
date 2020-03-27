@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-23 23:54:48
- * @LastEditTime: 2020-03-22 22:57:08
+ * @LastEditTime: 2020-03-27 23:26:01
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/components/JoinRoom.vue
@@ -16,6 +16,9 @@
           </v-card-title>
           <v-card-text>
             <v-row>
+              <v-col cols="12">
+                <v-text-field v-model="nickName" outlined label="昵称" required></v-text-field>
+              </v-col>
               <v-col cols="12">
                 <v-text-field v-model="code" outlined label="参加码" required></v-text-field>
               </v-col>
@@ -43,7 +46,12 @@ export default {
       dialog: false,
       needPassword: false,
       code: '',
-      password: ''
+      password: '',
+      nickName:
+        '编号' +
+        Math.random()
+          .toString()
+          .substring(3, 8)
     }
   },
   methods: {
@@ -52,7 +60,14 @@ export default {
     },
     join() {
       if (this.validate()) {
-        this.needPassword = true
+        this.$router.push({
+          name: 'Room',
+          params: {
+            code: this.code,
+            password: this.password,
+            name: this.nickName
+          }
+        })
       }
     },
     validate() {
