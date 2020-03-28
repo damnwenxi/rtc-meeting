@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-27 23:30:44
+ * @LastEditTime: 2020-03-28 22:43:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -50,7 +50,8 @@ io.on('connection', socket => {
     io.to(data.room_id).emit('message', {
       type: 'user_join',
       user_name: data.user_name,
-      room_id: data.room_id
+      room_id: data.room_id,
+      user_role: data.user_role
     })
   })
 
@@ -68,7 +69,8 @@ io.on('connection', socket => {
         type: 'new_offer_get',
         offer: data.offer,
         user_name: data.user_name,
-        room_id: data.room_id
+        room_id: data.room_id,
+        user_role: data.user_role
       })
     }
 
@@ -78,7 +80,8 @@ io.on('connection', socket => {
         type: 'new_answer_get',
         answer: data.answer,
         user_name: data.user_name,
-        room_id: data.room_id
+        room_id: data.room_id,
+        user_role: data.user_role
       })
     }
 
@@ -88,7 +91,8 @@ io.on('connection', socket => {
         type: 'icecandidate_res',
         icecandidate: data.icecandidate,
         user_name: data.user_name,
-        room_id: data.room_id
+        room_id: data.room_id,
+        user_role: data.user_role
       })
     }
   })
