@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-23 23:54:48
- * @LastEditTime: 2020-03-27 23:26:01
+ * @LastEditTime: 2020-03-28 22:40:52
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/components/JoinRoom.vue
@@ -65,7 +65,9 @@ export default {
           params: {
             code: this.code,
             password: this.password,
-            name: this.nickName
+            name: this.nickName,
+            // as the  participator
+            role: 1
           }
         })
       }

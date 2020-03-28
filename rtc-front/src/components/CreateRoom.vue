@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime: 2020-03-27 23:26:12
+ * @LastEditTime: 2020-03-28 22:41:03
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -79,7 +79,9 @@ export default {
           code: Math.random()
             .toString()
             .substring(2, 8),
-          name: this.nickName
+          name: this.nickName,
+          // as the initiator
+          role: 0
         }
       })
     }
