@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-28 22:43:26
+ * @LastEditTime: 2020-03-30 23:22:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -42,19 +42,6 @@ let offer = ''
 
 io.on('connection', socket => {
 
-  // join room
-  socket.on('join_room', data => {
-    socket.join(data.room_id)
-    console.log(data.user_name + '加入了房间：' + data.room_id)
-    // 加入房间后广播一条消息到房间
-    io.to(data.room_id).emit('message', {
-      type: 'user_join',
-      user_name: data.user_name,
-      room_id: data.room_id,
-      user_role: data.user_role
-    })
-  })
-
   socket.on('message', data => {
 
     /**
@@ -63,12 +50,26 @@ io.on('connection', socket => {
      * 所有用户，用户收到offer后依次建立连接。
      */
 
+    // 用户加入
+    if (data.type === 'join_room') {
+      socket.join(data.room_id)
+      console.log(data.user_name + '加入了房间：' + data.room_id)
+      // 加入房间后广播一条消息到房间
+      io.to(data.room_id).emit('message', {
+        type: 'user_join',
+        user_name: data.user_name,
+        room_id: data.room_id,
+        user_role: data.user_role
+      })
+    }
+
     // offer处理
     if (data.type === 'offer') {
       io.to(data.room_id).emit('message', {
         type: 'new_offer_get',
         offer: data.offer,
-        user_name: data.user_name,
+        to: data.to,
+        from: data.from,
         room_id: data.room_id,
         user_role: data.user_role
       })
@@ -79,9 +80,21 @@ io.on('connection', socket => {
       io.to(data.room_id).emit('message', {
         type: 'new_answer_get',
         answer: data.answer,
-        user_name: data.user_name,
+        from: data.from,
+        to: data.to,
         room_id: data.room_id,
         user_role: data.user_role
+      })
+    }
+
+    // 房间内成员更新
+    if (data.type === 'user_update') {
+      io.to(data.room_id).emit('message', {
+        type: 'user_update_res',
+        user_list: data.user_list,
+        room_id: data.room_id,
+        user_role: data.user_role,
+        user_name: data.user_name
       })
     }
 
