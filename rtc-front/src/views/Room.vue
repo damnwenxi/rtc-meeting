@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-28 23:29:48
+ * @LastEditTime: 2020-03-30 23:42:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
@@ -60,6 +60,7 @@ export default {
       },
       localStream: null,
       localVideo: null,
+      remoteVideo: null,
       socket: null,
       mainUser: '主视频',
       roomTitle: '会议标题',
@@ -85,7 +86,9 @@ export default {
       code: this.$route.params.code,
       password: this.$route.params.password,
       name: this.$route.params.name,
-      role: this.$route.params.role
+      role: this.$route.params.role,
+      // 当前房间内用户，这个数组由会议发起者负责更新
+      userList: []
     }
   },
   created() {
@@ -105,23 +108,35 @@ export default {
       // 用户加入
       if (data.type === 'user_join') {
         console.log(data.user_name + '加入了房间' + data.room_id)
-
-        // 如果是自己加入而且是参会者 这里就可以创建本地的pc了
-        if (data.user_name === this.name && data.user_role === 1) {
-          this.createPeerConnectionForSelf()
+        // 会议发起者要更新当前房间内成员信息，并将这个列表给wss
+        if (this.role === 0) {
+          this.userList.push({
+            name: data.user_name,
+            role: data.user_role,
+            joints: data.ts
+          })
+          socket.send({
+            type: 'user_update',
+            user_list: this.userList,
+            user_name: this.name,
+            user_role: this.role,
+            room_id: this.code
+          })
         }
       }
       // 这里监听到的offer是新加入用户发来的
       if (data.type === 'new_offer_get') {
         if (data.offer) {
           // 自己发的不做处理
-          if (data.user_name === this.name) {
+          if (data.from === this.name) {
             return
           }
-          console.log(data.user_name + '的offer:' + data.offer)
+          console.log(data.from + '的offer:')
           try {
             // 为新加入的远端用户新建一个peerConnection，拿到offer 要给远端发answer
-            this.createPeerConnectionForRemote(data)
+            if (data.to === this.name) {
+              this.createPeerConnectionForRemote(data)
+            }
           } catch (error) {
             console.log('建立连接失败')
           }
@@ -130,12 +145,13 @@ export default {
       if (data.type === 'new_answer_get') {
         if (data.answer) {
           // 同样，自己发的直接返回
-          if (data.user_name === this.name) {
+          if (data.from === this.name) {
             return
           }
-          console.log(data.user_name + 'answer:' + data.answer)
-          // 不是自己的去pcList里面找到对应远端的连接
-          this.findAndSetAnswerForRemote(data)
+          console.log(data.from + 'answer:' + data.answer)
+          if (data.to === this.name) {
+            this.findAndSetAnswerForRemote(data)
+          }
         }
       }
       if (data.type === 'icecandidate_res') {
@@ -146,11 +162,43 @@ export default {
           console.log(e)
         }
       }
+      // 房间成员更新
+      if (data.type === 'user_update_res') {
+        // 会议发起者不需要更新了
+        if (this.role === 0) {
+          return
+        }
+        this.userList = data.user_list
+      }
     })
   },
   mounted() {
     this.localVideo = document.getElementById('local-video')
+    this.remoteVideo = document.getElementById('remote-video')
     this.remoteVideoWrap = document.getElementById('remote-video-list')
+  },
+  watch: {
+    userList: {
+      deep: true,
+      handler: function(newList, oldList) {
+        let newNameList = newList.map(item => item.name)
+        let oldNameList = oldList.map(item => item.name)
+        // 只有参会者响应这个变化
+        if (this.role === 1) {
+          let deltaList = newList.filter(item => {
+            return (
+              item.name !== this.name && oldNameList.indexOf(item.name) === -1
+            )
+          })
+
+          // 拿到新增用户
+          console.log(deltaList)
+          deltaList.forEach(item => {
+            this.createPeerConnectionForSelf(item)
+          })
+        }
+      }
+    }
   },
   computed: {
     videoTracks() {
@@ -182,7 +230,8 @@ export default {
 
     joinRoom() {
       // 第一步加入教室
-      socket.emit('join_room', {
+      socket.send({
+        type: 'join_room',
         user_name: this.name,
         room_id: this.code,
         user_role: this.role
@@ -205,12 +254,12 @@ export default {
     createPeerConnectionForRemote(data) {
       let peerConnection = new RTCPeerConnection(this.pcConfig)
       this.pcList.push({
-        user: data.user_name,
+        user: data.from,
         pc: peerConnection
       })
 
       // 这里是个巨坑，要在createOffer/Answer之前把媒体流挂载到连接上，不然永远不会触发icecandidate
-      // 挖个坟给自己
+      // 挖个坟
       peerConnection.addStream(this.localStream)
       // 给peerConnection绑定事件
       peerConnection.onicecandidate = this.icecandidateHandle
@@ -227,7 +276,8 @@ export default {
                 socket.send({
                   type: 'answer',
                   room_id: this.code,
-                  user_name: this.name,
+                  from: this.name,
+                  to: data.from,
                   user_role: this.role,
                   answer: answer
                 })
@@ -239,14 +289,14 @@ export default {
         })
     },
 
-    // 作为参会者加入，自己先建立pc（为发起人建立的pc）
+    // 为新加入的用户创建pc
     /**
      * 没有参数
      */
-    createPeerConnectionForSelf() {
+    createPeerConnectionForSelf(user) {
       const peerConnection = new RTCPeerConnection(this.pcConfig)
       this.pcList.push({
-        user: 'initiator',
+        user: user.name,
         pc: peerConnection
       })
       peerConnection.addStream(this.localStream)
@@ -264,9 +314,10 @@ export default {
             socket.send({
               type: 'offer',
               room_id: this.code,
-              user_name: this.name,
               user_role: this.role,
-              offer: offer
+              offer: offer,
+              to: user.name,
+              from: this.name
             })
           })
         })
@@ -275,15 +326,16 @@ export default {
         })
     },
     findAndSetAnswerForRemote(data) {
-      let name = data.user_name
+      let name = data.from
       let targetPc = this.pcList.filter(item => {
         return item.user === name
-      })
+      })[0]
 
-      targetPc
+      targetPc.pc
         .setRemoteDescription(new RTCSessionDescription(data.answer))
         .then(() => {
           // 此时双方连接建立完毕
+          console.log('连接建立成功')
         })
     },
     // ice连接成功回调

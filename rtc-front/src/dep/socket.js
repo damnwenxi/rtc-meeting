@@ -1,7 +1,7 @@
 /*
  * @Author: kefeng
  * @Date: 2020-03-06 22:19:46
- * @LastEditTime: 2020-03-22 12:33:07
+ * @LastEditTime: 2020-03-30 22:07:01
  * @LastEditors: Please set LastEditors
  * @Description: socket封装
  * @FilePath: /rtc-meeting/rtc-front/src/dep/socket.js
@@ -17,6 +17,7 @@ socket.on('connect', () => {
 
 // 封装一个send方法
 socket.send = function (message) {
+  message.ts = new Date().getTime()
   socket.emit('message', message)
 }
 
