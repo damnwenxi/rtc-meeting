@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-03-06 23:09:14
- * @LastEditTime: 2020-03-25 00:07:53
+ * @LastEditTime: 2020-03-31 23:19:35
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/vue.config.js
@@ -12,7 +12,7 @@ module.exports = {
   ],
   devServer: {
     open: true,
-    host: 'localhost',
+    host: '0.0.0.0',
     port: 8080,
     https: false,
     proxy: {

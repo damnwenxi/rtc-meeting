@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-30 23:22:26
+ * @LastEditTime: 2020-03-31 23:02:37
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/server/index.js
@@ -103,7 +103,8 @@ io.on('connection', socket => {
       io.to(data.room_id).emit('message', {
         type: 'icecandidate_res',
         icecandidate: data.icecandidate,
-        user_name: data.user_name,
+        from: data.from,
+        to: data.to,
         room_id: data.room_id,
         user_role: data.user_role
       })

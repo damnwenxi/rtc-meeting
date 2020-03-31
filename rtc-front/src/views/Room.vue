@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-30 23:42:10
+ * @LastEditTime: 2020-03-31 23:10:24
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
@@ -155,9 +155,10 @@ export default {
         }
       }
       if (data.type === 'icecandidate_res') {
-        console.log(this.pcList[0])
         try {
-          this.pcList[0].addIceCandidate(message.content)
+          if (data.to === this.name) {
+            this.findAndSetIceCandidate(data)
+          }
         } catch (e) {
           console.log(e)
         }
@@ -301,7 +302,19 @@ export default {
       })
       peerConnection.addStream(this.localStream)
 
-      peerConnection.onicecandidate = this.icecandidateHandle
+      peerConnection.onicecandidate = event => {
+        console.log('ice 成功获取:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: user.name,
+            room_id: this.code,
+            user_role: this.role
+          })
+        }
+      }
       peerConnection.oniceconnectionstatechange = this.icecandidateHandle
       peerConnection.onaddstream = this.remoteStreamAddHandle
 
@@ -338,10 +351,16 @@ export default {
           console.log('连接建立成功')
         })
     },
+    findAndSetIceCandidate(data) {
+      let target = this.pcList.filter(item => {
+        return data.from === item.user
+      })
+      var candidate = new RTCIceCandidate(data.icecandidate)
+      target[0].pc.addIceCandidate(candidate)
+    },
     // ice连接成功回调
     icecandidateHandle(event) {
       console.log('ice 成功获取:')
-      console.log(event)
       if (event && event.candidate) {
         socket.send({
           type: 'icecandidate',
@@ -360,6 +379,7 @@ export default {
     },
 
     remoteStreamAddHandle(event) {
+      console.log('remote stream add')
       if (event && event.stream) {
         this.remoteVideo.srcObject = event.stream
       }

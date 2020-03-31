@@ -1,16 +1,16 @@
 /*
- * @Author: your name
- * @Date: 2020-03-24 23:01:12
- * @LastEditTime: 2020-03-25 23:07:21
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/service/service.js
+ * @Date         : 2020-03-24 23:01:12
+ * @LastEditors  : kefeng
+ * @LastEditTime : 2020-03-31 23:43:00
+ * @FilePath     : /rtc-meeting/rtc-front/src/service/service.js
  */
+
 
 import axios from './index'
 
 /**
  * @description 用户注册
+ * @author kefeng
  */
 export function register(params) {
   return axios.post('/api/user/register', {
@@ -38,3 +38,10 @@ export function resetPassword(params) {
     email: params.email
   })
 }
+
+
+/**
+ * @description:
+ * @param {type}
+ * @return:
+ */
