@@ -1,10 +1,10 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime: 2020-03-31 23:10:24
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-03 00:41:15
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/views/Room.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
  -->
 <template>
   <div class="room">
@@ -14,9 +14,17 @@
       <span class="room-password" v-if="password">密码： {{password}}</span>
     </div>
 
-    <video id="local-video" autoplay playsinline class="video" src></video>
-    <div id="remote-video-list">
-      <video id="remote-video" autoplay playsinline class="video" src></video>
+    <div id="video-list">
+      <video id="local-video" autoplay playsinline class="video" src></video>
+      <video
+        v-for="item in remoteUserList"
+        :key="item.number"
+        :id="item.number"
+        autoplay
+        playsinline
+        class="video"
+        src
+      ></video>
     </div>
 
     <div class="btn-wrap">
@@ -78,15 +86,14 @@ export default {
           }
         ]
       },
-      me: {
-        userName: 'kf',
-        id: 123
-      },
       // 房间id / 参加码
       code: this.$route.params.code,
       password: this.$route.params.password,
       name: this.$route.params.name,
       role: this.$route.params.role,
+      number: Math.random()
+        .toString()
+        .substring(2, 8),
       // 当前房间内用户，这个数组由会议发起者负责更新
       userList: []
     }
@@ -113,6 +120,7 @@ export default {
           this.userList.push({
             name: data.user_name,
             role: data.user_role,
+            number: data.user_number,
             joints: data.ts
           })
           socket.send({
@@ -120,7 +128,8 @@ export default {
             user_list: this.userList,
             user_name: this.name,
             user_role: this.role,
-            room_id: this.code
+            room_id: this.code,
+            user_number: this.number
           })
         }
       }
@@ -195,7 +204,9 @@ export default {
           // 拿到新增用户
           console.log(deltaList)
           deltaList.forEach(item => {
-            this.createPeerConnectionForSelf(item)
+            setTimeout(() => {
+              this.createPeerConnectionForSelf(item)
+            }, 1000)
           })
         }
       }
@@ -211,6 +222,11 @@ export default {
       if (this.localStream) {
         return this.localStream.getAudioTracks()
       }
+    },
+    remoteUserList() {
+      return this.userList.filter(user => {
+        return user.number !== this.number
+      })
     }
   },
   methods: {
@@ -235,7 +251,8 @@ export default {
         type: 'join_room',
         user_name: this.name,
         room_id: this.code,
-        user_role: this.role
+        user_role: this.role,
+        user_number: this.number
       })
     },
     // 获取本地媒体流失败回调
@@ -256,6 +273,7 @@ export default {
       let peerConnection = new RTCPeerConnection(this.pcConfig)
       this.pcList.push({
         user: data.from,
+        number: data.user_number,
         pc: peerConnection
       })
 
@@ -263,9 +281,39 @@ export default {
       // 挖个坟
       peerConnection.addStream(this.localStream)
       // 给peerConnection绑定事件
-      peerConnection.onicecandidate = this.icecandidateHandle
-      peerConnection.oniceconnectionstatechange = this.icecandidateHandle
-      peerConnection.onaddstream = this.remoteStreamAddHandle
+      peerConnection.onicecandidate = event => {
+        console.log('ice 成功获取:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: data.user_name,
+            room_id: this.code,
+            user_role: this.role,
+            user_number: this.number
+          })
+        }
+      }
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log('ice 成功获取:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: data.user_name,
+            room_id: this.code,
+            user_role: this.role,
+            user_number: this.number
+          })
+        }
+      }
+      peerConnection.onaddstream = event => {
+        if (event && event.stream) {
+          document.getElementById(data.user_number).srcObject = event.stream
+        }
+      }
 
       // 把拿到的offer设置到连接
       peerConnection
@@ -278,6 +326,7 @@ export default {
                   type: 'answer',
                   room_id: this.code,
                   from: this.name,
+                  user_number: this.number,
                   to: data.from,
                   user_role: this.role,
                   answer: answer
@@ -311,12 +360,30 @@ export default {
             from: this.name,
             to: user.name,
             room_id: this.code,
-            user_role: this.role
+            user_role: this.role,
+            user_number: this.number
           })
         }
       }
-      peerConnection.oniceconnectionstatechange = this.icecandidateHandle
-      peerConnection.onaddstream = this.remoteStreamAddHandle
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log('ice 成功获取:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: user.name,
+            room_id: this.code,
+            user_role: this.role,
+            user_number: this.number
+          })
+        }
+      }
+      peerConnection.onaddstream = event => {
+        if (event && event.stream) {
+          document.getElementById(user.number).srcObject = event.stream
+        }
+      }
 
       peerConnection
         .createOffer()
@@ -330,7 +397,8 @@ export default {
               user_role: this.role,
               offer: offer,
               to: user.name,
-              from: this.name
+              from: this.name,
+              user_number: this.number
             })
           })
         })
@@ -361,12 +429,6 @@ export default {
     // ice连接成功回调
     icecandidateHandle(event) {
       console.log('ice 成功获取:')
-      if (event && event.candidate) {
-        socket.send({
-          type: 'icecandidate',
-          content: event.candidate
-        })
-      }
     },
     // ice连接错误回调
     icecandidateErrorHandle(event) {

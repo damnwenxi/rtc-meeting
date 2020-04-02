@@ -1,7 +1,7 @@
 /*
  * @Date         : 2020-03-24 23:01:12
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-03-31 23:43:00
+ * @LastEditTime : 2020-04-01 00:37:22
  * @FilePath     : /rtc-meeting/rtc-front/src/service/service.js
  */
 
@@ -10,7 +10,8 @@ import axios from './index'
 
 /**
  * @description 用户注册
- * @author kefeng
+ * @param {Object} 
+ * @return: Promise
  */
 export function register(params) {
   return axios.post('/api/user/register', {
@@ -22,6 +23,8 @@ export function register(params) {
 
 /**
  * @description 用户登录
+ * @param {Object} 
+ * @return: Promise
  */
 export function login(params) {
   return axios.post('/api/user/login', {
@@ -31,7 +34,9 @@ export function login(params) {
 }
 
 /**
- * @description 重置密码发送
+ * @description: 重置密码发送
+ * @param {Object} 
+ * @return: Promise
  */
 export function resetPassword(params) {
   return axios.post('/api/user/resetPassword', {
@@ -41,7 +46,12 @@ export function resetPassword(params) {
 
 
 /**
- * @description:
- * @param {type}
- * @return:
+ * @description: 创建会议室
+ * @param {Object}
+ * @return: Promise
  */
+export function createRoom(params) {
+  return axios.post('/api/room/create', {
+
+  })
+}
