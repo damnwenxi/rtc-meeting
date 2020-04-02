@@ -1,10 +1,10 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime: 2020-03-31 23:02:37
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-03 00:09:38
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/server/index.js
+ * @FilePath     : /rtc-meeting/server/index.js
  */
 const express = require('express')
 const app = express()
@@ -59,7 +59,8 @@ io.on('connection', socket => {
         type: 'user_join',
         user_name: data.user_name,
         room_id: data.room_id,
-        user_role: data.user_role
+        user_role: data.user_role,
+        user_number: data.user_number
       })
     }
 
@@ -71,7 +72,8 @@ io.on('connection', socket => {
         to: data.to,
         from: data.from,
         room_id: data.room_id,
-        user_role: data.user_role
+        user_role: data.user_role,
+        user_number: data.user_number
       })
     }
 
@@ -83,7 +85,8 @@ io.on('connection', socket => {
         from: data.from,
         to: data.to,
         room_id: data.room_id,
-        user_role: data.user_role
+        user_role: data.user_role,
+        user_number: data.user_number
       })
     }
 
@@ -94,7 +97,8 @@ io.on('connection', socket => {
         user_list: data.user_list,
         room_id: data.room_id,
         user_role: data.user_role,
-        user_name: data.user_name
+        user_name: data.user_name,
+        user_number: data.user_number
       })
     }
 
@@ -106,7 +110,8 @@ io.on('connection', socket => {
         from: data.from,
         to: data.to,
         room_id: data.room_id,
-        user_role: data.user_role
+        user_role: data.user_role,
+        user_number: data.user_number
       })
     }
   })
