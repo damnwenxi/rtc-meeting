@@ -1,7 +1,7 @@
 /*
  * @Date         : 2020-03-24 23:01:12
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-01 00:37:22
+ * @LastEditTime : 2020-04-03 23:52:50
  * @FilePath     : /rtc-meeting/rtc-front/src/service/service.js
  */
 
@@ -52,6 +52,10 @@ export function resetPassword(params) {
  */
 export function createRoom(params) {
   return axios.post('/api/room/create', {
-
+    owner: params.owner,
+    owner_id: params.owner_id,
+    title: params.title,
+    password: params.password,
+    need_password: params.need_password
   })
 }

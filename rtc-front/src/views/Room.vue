@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-03 00:41:15
+ * @LastEditTime : 2020-04-03 23:57:55
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -38,7 +38,7 @@
         <v-icon dark>mdi-account-multiple</v-icon>
         参会人数: {{userCount}}
       </div>
-      <div class="room-title">{{roomTitle}}</div>
+      <div class="room-title">{{title || ''}}</div>
 
       <div @click="toggleChat()" :class="{'chat-active': showChat}" class="chat">
         <v-icon dark>mdi-message-text</v-icon>
@@ -71,7 +71,6 @@ export default {
       remoteVideo: null,
       socket: null,
       mainUser: '主视频',
-      roomTitle: '会议标题',
       userCount: 4,
       showChat: false,
       // pcList peerConnection 列表
@@ -91,6 +90,7 @@ export default {
       password: this.$route.params.password,
       name: this.$route.params.name,
       role: this.$route.params.role,
+      title: this.$route.params.title,
       number: Math.random()
         .toString()
         .substring(2, 8),
