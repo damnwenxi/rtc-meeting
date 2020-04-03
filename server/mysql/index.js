@@ -1,10 +1,10 @@
 /*
  * @Author: your name
  * @Date: 2020-03-23 23:28:53
- * @LastEditTime: 2020-03-23 23:54:34
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-03 23:35:26
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/server/mysql/index.js
+ * @FilePath     : /rtc-meeting/server/mysql/index.js
  */
 const mysql = require('mysql')
 
