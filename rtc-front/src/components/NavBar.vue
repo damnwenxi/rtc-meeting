@@ -1,10 +1,10 @@
 <!--
  * @Author: kefeng
  * @Date: 2020-02-22 21:43:49
- * @LastEditTime: 2020-03-26 23:38:07
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 16:24:01
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/components/NavBar.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/components/NavBar.vue
  -->
 <template>
   <v-app-bar absolute color="white" hide-on-scroll scroll-target="#container">
@@ -13,24 +13,18 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn @click="goLogin()" v-if="!isLogin" text>
+    <v-btn @click="goLogin()" v-if="!user" text>
       <v-icon dark>mdi-account-circle</v-icon>登录
     </v-btn>
 
-    <v-menu
-      v-else
-      v-model="userMenu"
-      :close-on-click="true"
-      :close-on-content-click="true"
-      :offset-y="true"
-    >
+    <v-menu v-else :close-on-click="true" :close-on-content-click="true" :offset-y="true">
       <template v-slot:activator="{ on }">
-        <v-btn text v-on="on">
+        <span class="user-login" v-on="on">
           <v-avatar size="36px">
-            <img src="https://cdn.vuetifyjs.com/images/john.jpg" alt="John" />
+            <img src="../assets/img/avatar.png" v-real-src="user.avatar" />
           </v-avatar>
-          <strong v-html="'kefeng'"></strong>
-        </v-btn>
+          <span class="user-name" v-html="user.name"></span>
+        </span>
       </template>
       <v-list>
         <v-list-item @click="logout()">
@@ -43,16 +37,20 @@
 </template>
 
 <script>
+import { mapGetters, mapMutations } from 'vuex'
+import defaultAvatar from '../assets/img/avatar.png'
+
 export default {
   data() {
-    return {
-      userMenu: false,
-      isLogin: false
-    }
+    return {}
+  },
+  computed: {
+    ...mapGetters(['user'])
   },
   methods: {
+    ...mapMutations(['updateUser']),
     logout() {
-      console.log('logout')
+      this.updateUser(null)
     },
     goLogin() {
       this.$router.push({
@@ -71,5 +69,13 @@ export default {
 <style lang="scss" scoped>
 .title {
   margin-left: 10px;
+}
+.user-login {
+  cursor: pointer;
+  color: #789;
+
+  .user-name {
+    margin-left: 6px;
+  }
 }
 </style>

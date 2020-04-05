@@ -1,10 +1,10 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime: 2020-03-22 22:45:42
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 15:36:02
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/views/Home.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/views/Home.vue
  -->
 <template>
   <div class="home">
@@ -69,7 +69,7 @@ export default {
 .home {
   .banner {
     position: relative;
-    background-image: url('../assets/banner.jpg');
+    background-image: url('../assets/img/banner.jpg');
     width: 100%;
     height: 560px;
     background-size: cover;

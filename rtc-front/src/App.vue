@@ -1,10 +1,10 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime: 2020-03-27 22:46:23
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 18:03:50
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/App.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/App.vue
  -->
 <template>
   <v-app>
@@ -33,7 +33,7 @@ export default {
   data: () => ({
     snackbar: false, // 全局tip
     tip: '', // 通知内容
-    timeout: 5000,
+    timeout: 3000,
     color: 'info'
   }),
 
@@ -69,6 +69,12 @@ export default {
       text = text.trim()
       const now = (window.performance.now() / 1000).toFixed(3)
       console.log(now, text)
+    }
+    // 根据token中的信息先登录
+    const user = window.localStorage.getItem('user')
+    if (user) {
+      user = JSON.parse(user)
+      console.log(user)
     }
   }
 }

@@ -1,22 +1,22 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:00
- * @LastEditTime: 2020-03-27 22:36:05
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 16:16:25
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/views/Login.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/views/Login.vue
  -->
 <template>
   <div class="login">
     <v-card class="login-card" max-width="1080" max-height="560">
-      <v-img class="left-image" src="../assets/login-right.jpeg"></v-img>
+      <v-img class="left-image" src="../assets/img/login-left.jpeg"></v-img>
       <v-form ref="loginForm" class="right-form" v-model="valid">
         <h1 class="login-title">登录</h1>
         <v-text-field
           v-model="username"
           :rules="nameRules"
           color="green"
-          :counter="16"
+          counter
           label="用户名/邮箱"
           required
         ></v-text-field>
@@ -27,7 +27,6 @@
           :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           :rules="passwordRules"
           :type="showPassword ? 'text' : 'password'"
-          name="input-10-1"
           label="密码"
           counter
           @click:append="showPassword = !showPassword"
@@ -48,6 +47,7 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
 import { login } from '../service/service'
 
 export default {
@@ -69,18 +69,23 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['updateUser']),
     login() {
       login({
         name: this.username,
         password: this.password
       }).then(res => {
-        if (res.data && res.data.msg) {
-          this.$emit('tip', {
-            code: res.data.code || 0,
-            msg: res.data.msg
+        this.$emit('tip', {
+          code: res.data.code || 0,
+          msg: res.data.msg
+        })
+        // 登录成功
+        if (res.data && res.data.code === 0) {
+          this.updateUser(res.data.user)
+          this.$router.push({
+            name: 'Home'
           })
         }
-        console.log(res)
       })
     },
     reset() {

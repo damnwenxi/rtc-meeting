@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-03 00:09:38
+ * @LastEditTime : 2020-04-05 13:20:03
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -16,9 +16,12 @@ const bodyParser = require('body-parser')
 
 const user = require('./requests/user')
 const room = require('./requests/room')
+const { jwtAuth } = require('./auth/jwt')
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(jwtAuth)
+
 
 app.use('/user', user)
 app.use('/room', room)

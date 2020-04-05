@@ -1,15 +1,15 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime: 2020-03-27 22:48:56
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 15:35:39
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/views/Register.vue
+ * @FilePath     : /rtc-meeting/rtc-front/src/views/Register.vue
  -->
 <template>
   <div class="register">
     <v-card class="register-card" max-width="1080" max-height="560">
-      <v-img class="left-image" src="../assets/login-right.jpeg"></v-img>
+      <v-img class="left-image" src="../assets/img/login-left.jpeg"></v-img>
       <v-form ref="registerForm" class="right-form" v-model="valid">
         <h1 class="register-title">注册帐号</h1>
         <v-text-field

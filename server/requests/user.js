@@ -1,16 +1,17 @@
 /*
  * @Author: your name
  * @Date: 2020-03-23 21:37:21
- * @LastEditTime: 2020-03-25 23:14:25
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-05 16:15:05
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/server/requests/user.js
+ * @FilePath     : /rtc-meeting/server/requests/user.js
  */
 
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const query = require('../mysql/index')
 const md5 = require('md5')
+const { secretKey } = require('../auth/constant')
 
 const user = express.Router()
 
@@ -25,7 +26,6 @@ user.get('/', (req, res) => {
  */
 user.post('/login', (req, res) => {
   const user = req.body
-  console.log(user)
   if (!user.name || !user.password) {
     res.json({ code: -1, msg: '用户名或密码不得为空' })
   } else {
@@ -41,10 +41,25 @@ user.post('/login', (req, res) => {
             user_name: findUser.name,
             user_avatar: findUser.avatar,
             user_role: findUser.super
-          }, 'secret', {
+          }, secretKey, {
             expiresIn: 60 * 60 * 24 * 3
           })
-          res.json({ code: 0, msg: '登录成功', token })
+          res.json({
+            code: 0,
+            msg: '登录成功',
+            token,
+            user: {
+              id: findUser.id,
+              name: findUser.name,
+              role: findUser.super,
+              avatar: findUser.avatar
+            }
+          })
+        } else {
+          res.json({
+            code: -1,
+            msg: '密码错误'
+          })
         }
       }
     })
