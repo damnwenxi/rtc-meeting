@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime : 2020-04-05 18:03:50
+ * @LastEditTime : 2020-04-07 21:50:28
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/App.vue
@@ -71,7 +71,7 @@ export default {
       console.log(now, text)
     }
     // 根据token中的信息先登录
-    const user = window.localStorage.getItem('user')
+    let user = window.localStorage.getItem('user')
     if (user) {
       user = JSON.parse(user)
       console.log(user)

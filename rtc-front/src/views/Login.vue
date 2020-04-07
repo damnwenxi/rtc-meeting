@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:00
- * @LastEditTime : 2020-04-05 16:16:25
+ * @LastEditTime : 2020-04-07 21:55:58
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Login.vue
@@ -69,7 +69,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['updateUser']),
+    ...mapMutations(['updateLoginUser']),
     login() {
       login({
         name: this.username,

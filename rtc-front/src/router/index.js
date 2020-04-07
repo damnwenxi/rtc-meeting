@@ -1,10 +1,10 @@
 /*
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime: 2020-03-23 21:25:06
- * @LastEditors: Please set LastEditors
+ * @LastEditTime : 2020-04-07 21:59:38
+ * @LastEditors  : kefeng
  * @Description: In User Settings Edit
- * @FilePath: /rtc-meeting/rtc-front/src/router/index.js
+ * @FilePath     : /rtc-meeting/rtc-front/src/router/index.js
  */
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -34,7 +34,7 @@ const routes = [
     component: Register
   },
   {
-    path: '/room/:code',
+    path: '/room/',
     name: 'Room',
     component: Room
   },

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-23 23:54:48
- * @LastEditTime : 2020-04-03 23:01:23
+ * @LastEditTime : 2020-04-07 21:42:38
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/JoinRoom.vue
@@ -72,8 +72,8 @@ export default {
     join() {
       if (this.validate()) {
         this.$router.push({
-          name: 'Room',
-          params: {
+          path: '/room',
+          query: {
             code: this.code,
             password: this.password,
             name: this.nickName,

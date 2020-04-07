@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime : 2020-04-04 00:01:02
+ * @LastEditTime : 2020-04-07 21:42:55
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -94,8 +94,8 @@ export default {
         let res = response.data
         if (res.code === 0 && res.data && res.data.code) {
           this.$router.push({
-            name: 'Room',
-            params: {
+            path: '/room',
+            query: {
               password: this.joinPassword || '',
               code: res.data.code,
               name: this.nickName,

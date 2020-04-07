@@ -1,7 +1,7 @@
 <!--
  * @Author: kefeng
  * @Date: 2020-02-22 21:43:49
- * @LastEditTime : 2020-04-05 16:24:01
+ * @LastEditTime : 2020-04-07 22:20:38
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/NavBar.vue
@@ -13,7 +13,7 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn @click="goLogin()" v-if="!user" text>
+    <v-btn @click="goLogin()" v-if="!loginUser" text>
       <v-icon dark>mdi-account-circle</v-icon>登录
     </v-btn>
 
@@ -21,9 +21,9 @@
       <template v-slot:activator="{ on }">
         <span class="user-login" v-on="on">
           <v-avatar size="36px">
-            <img src="../assets/img/avatar.png" v-real-src="user.avatar" />
+            <img src="../assets/img/avatar.png" v-real-src="loginUser.avatar" />
           </v-avatar>
-          <span class="user-name" v-html="user.name"></span>
+          <span class="user-name" v-html="loginUser.name"></span>
         </span>
       </template>
       <v-list>
@@ -45,12 +45,12 @@ export default {
     return {}
   },
   computed: {
-    ...mapGetters(['user'])
+    ...mapGetters(['loginUser'])
   },
   methods: {
-    ...mapMutations(['updateUser']),
+    ...mapMutations(['updateLoginUser']),
     logout() {
-      this.updateUser(null)
+      this.updateLoginUser(null)
     },
     goLogin() {
       this.$router.push({

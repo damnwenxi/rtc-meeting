@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-03 23:57:55
+ * @LastEditTime : 2020-04-07 22:37:55
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -55,6 +55,7 @@
 <script>
 import socket from '../dep/socket'
 import Message from '../components/Message'
+import {mapGetters, mapMutations} from 'vuex'
 
 export default {
   components: {
@@ -86,11 +87,11 @@ export default {
         ]
       },
       // 房间id / 参加码
-      code: this.$route.params.code,
-      password: this.$route.params.password,
-      name: this.$route.params.name,
-      role: this.$route.params.role,
-      title: this.$route.params.title,
+      code: '',
+      password: '',
+      name: '',
+      role: '',
+      title: '',
       number: Math.random()
         .toString()
         .substring(2, 8),
@@ -99,6 +100,20 @@ export default {
     }
   },
   created() {
+    // 从路由拿房间信息
+    this.code = this.$route.query.code
+    this.password = this.$route.query.password
+    this.name = this.$route.query.name
+    this.role = this.$route.query.role
+    this.title = this.$route.query.title
+
+    this.updateUser({
+      code: this.code,
+      name: this.name,
+      role: this.role,
+      number: this.number
+    })
+
     if (!this.code) {
       this.$emit('tip', {
         code: -1,
@@ -213,6 +228,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters['loginUser', 'user'],
     videoTracks() {
       if (this.localStream) {
         return this.localStream.getVideoTracks()
@@ -230,6 +246,7 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['updateLoginUser', 'updateUser']),
     start() {
       navigator.mediaDevices
         .getUserMedia(this.mediaStreamConstraints)
