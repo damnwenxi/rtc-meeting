@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-05 13:20:03
+ * @LastEditTime : 2020-04-07 22:38:40
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -64,6 +64,18 @@ io.on('connection', socket => {
         room_id: data.room_id,
         user_role: data.user_role,
         user_number: data.user_number
+      })
+    }
+
+    // 聊天
+    if (data.type === 'chat') {
+      console.log(data)
+      io.to(data.room_id).emit('message', {
+        type: 'chat_res',
+        from: data.from,
+        content: data.content,
+        time: data.time,
+        number: data.number
       })
     }
 
