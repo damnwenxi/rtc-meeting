@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:00
- * @LastEditTime : 2020-04-07 21:55:58
+ * @LastEditTime : 2020-04-10 21:50:56
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Login.vue
@@ -81,7 +81,7 @@ export default {
         })
         // 登录成功
         if (res.data && res.data.code === 0) {
-          this.updateUser(res.data.user)
+          this.updateLoginUser(res.data.user)
           this.$router.push({
             name: 'Home'
           })

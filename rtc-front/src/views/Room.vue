@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-07 22:37:55
+ * @LastEditTime : 2020-04-10 22:58:20
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -254,6 +254,17 @@ export default {
         .then(this.gotLocalMediaStream)
         .catch(this.handleLocalMediaStreamError)
     },
+    close() {
+      // 关闭当前与自己的所有连接
+      this.pcList.forEach(item => {
+        console.log('关闭：' + item.user)
+        item.pc.close()
+        item.pc = null
+      })
+      this.pcList = []
+      this.videoTracks[0] && this.videoTracks[0].stop()
+      this.audioTracks[0] && this.audioTracks[0].stop()
+    },
     // 获取到本地媒体流
     gotLocalMediaStream(mediaStream) {
       this.localStream = mediaStream
@@ -331,6 +342,33 @@ export default {
           document.getElementById(data.user_number).srcObject = event.stream
         }
       }
+      peerConnection.onremovestream = event => {
+        const self = document.getElementById(data.user_number)
+        const parent = self.parentElement
+        const removed = parent.removeChild(self)
+      }
+      peerConnection.onconnectionstatechange = event => {
+        switch(peerConnection.connectionState) {
+          case "connected":
+            console.log('connected')
+            // The connection has become fully connected
+            break;
+          case "disconnected":
+            break;
+          case "failed":
+            console.log('failed')
+            // One or more transports has terminated unexpectedly or in an error
+            break;
+          case "closed":
+            console.log('close')
+            const self = document.getElementById(data.user_number)
+            const parent = self.parentElement
+            const removed = parent.removeChild(self)
+            // The connection has been closed
+            break;
+        }
+      }
+
 
       // 把拿到的offer设置到连接
       peerConnection
@@ -401,6 +439,32 @@ export default {
           document.getElementById(user.number).srcObject = event.stream
         }
       }
+      peerConnection.onremovestream = event => {
+        const self = document.getElementById(user.number)
+        const parent = self.parentElement
+        const removed = parent.removeChild(self)
+      }
+      peerConnection.onconnectionstatechange = event => {
+        switch(peerConnection.connectionState) {
+          case "connected":
+            console.log('connected')
+            // The connection has become fully connected
+            break;
+          case "disconnected":
+            break;
+          case "failed":
+            console.log('failed')
+            // One or more transports has terminated unexpectedly or in an error
+            break;
+          case "closed":
+            console.log('close')
+            const self = document.getElementById(user.number)
+            const parent = self.parentElement
+            const removed = parent.removeChild(self)
+            // The connection has been closed
+            break;
+        }
+      }
 
       peerConnection
         .createOffer()
@@ -463,6 +527,14 @@ export default {
         this.remoteVideo.srcObject = event.stream
       }
     }
+  },
+  beforeDestroy () {
+    this.close()
+  },
+  // 路由守卫
+  beforeRouteLeave(to, from, next) {
+    this.close()
+    next()
   }
 }
 </script>
