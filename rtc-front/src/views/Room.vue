@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-10 22:58:20
+ * @LastEditTime : 2020-04-11 12:44:07
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -48,6 +48,16 @@
       </div>
     </div>
 
+    <!-- room tip -->
+    <v-snackbar
+      v-model="showUserTip"
+      right
+      top
+      :timeout="timeout"
+    >
+    <span>{{userTip.name}}</span>{{userTip.action}}了房间
+    </v-snackbar>
+
     <Message :class="{'show-message': showChat}" />
   </div>
 </template>
@@ -63,6 +73,13 @@ export default {
   },
   data() {
     return {
+      // 用户加入离开提示
+      timeout: 2000,
+      showUserTip: false,
+      userTip: {
+        name: '',
+        action: ''
+      },
       mediaStreamConstraints: {
         video: true,
         audio: false
@@ -72,7 +89,6 @@ export default {
       remoteVideo: null,
       socket: null,
       mainUser: '主视频',
-      userCount: 4,
       showChat: false,
       // pcList peerConnection 列表
       pcList: [],
@@ -130,6 +146,9 @@ export default {
       // 用户加入
       if (data.type === 'user_join') {
         console.log(data.user_name + '加入了房间' + data.room_id)
+        this.showUserTip = true
+        this.userTip.name = data.user_name
+        this.userTip.action = '加入'
         // 会议发起者要更新当前房间内成员信息，并将这个列表给wss
         if (this.role === 0) {
           this.userList.push({
@@ -148,6 +167,24 @@ export default {
           })
         }
       }
+
+      // 用户离开
+      if (data.type === 'user_leave' && data.user_number !== this.number) {
+        // 销毁播放器
+        const self = document.getElementById(data.user_number)
+        const parent = self.parentElement
+        const removed = parent.removeChild(self)
+        // 关闭与离开用户的rtc连接
+        this.closePeerConnection(data.user_number)
+        // 更新当前用户列表
+        this.userList = this.userList.filter(item => {
+          return item.number !== data.user_number
+        })
+        this.showUserTip = true
+        this.userTip.name = data.user_name
+        this.userTip.action = '离开'
+      }
+
       // 这里监听到的offer是新加入用户发来的
       if (data.type === 'new_offer_get') {
         if (data.offer) {
@@ -217,7 +254,6 @@ export default {
           })
 
           // 拿到新增用户
-          console.log(deltaList)
           deltaList.forEach(item => {
             setTimeout(() => {
               this.createPeerConnectionForSelf(item)
@@ -243,6 +279,9 @@ export default {
       return this.userList.filter(user => {
         return user.number !== this.number
       })
+    },
+    userCount () {
+      return this.userList.length || 0
     }
   },
   methods: {
@@ -255,15 +294,38 @@ export default {
         .catch(this.handleLocalMediaStreamError)
     },
     close() {
+      this.leaveRoom()
       // 关闭当前与自己的所有连接
       this.pcList.forEach(item => {
         console.log('关闭：' + item.user)
-        item.pc.close()
+        item.pc && item.pc.close()
         item.pc = null
       })
       this.pcList = []
+      // 关闭摄像头与麦克风
       this.videoTracks[0] && this.videoTracks[0].stop()
       this.audioTracks[0] && this.audioTracks[0].stop()
+    },
+    // 离开房间
+    leaveRoom () {
+      socket.send({
+        type: 'leave_room',
+        user_name: this.name,
+        user_number: this.number,
+        user_role: this.role,
+        room_id: this.code
+      })
+    },
+    // 关闭与某用户的连接
+    closePeerConnection (user_number) {
+      console.log(user_number)
+      console.log(this.pcList)
+      this.pcList.forEach(item => {
+        if (item.number === user_number) {
+          item.pc.close()
+          item.pc = null
+        }
+      })
     },
     // 获取到本地媒体流
     gotLocalMediaStream(mediaStream) {
@@ -324,7 +386,7 @@ export default {
         }
       }
       peerConnection.oniceconnectionstatechange = event => {
-        console.log('ice 成功获取:')
+        console.log('ice 改变了:')
         if (event && event.candidate) {
           socket.send({
             type: 'icecandidate',
@@ -342,33 +404,6 @@ export default {
           document.getElementById(data.user_number).srcObject = event.stream
         }
       }
-      peerConnection.onremovestream = event => {
-        const self = document.getElementById(data.user_number)
-        const parent = self.parentElement
-        const removed = parent.removeChild(self)
-      }
-      peerConnection.onconnectionstatechange = event => {
-        switch(peerConnection.connectionState) {
-          case "connected":
-            console.log('connected')
-            // The connection has become fully connected
-            break;
-          case "disconnected":
-            break;
-          case "failed":
-            console.log('failed')
-            // One or more transports has terminated unexpectedly or in an error
-            break;
-          case "closed":
-            console.log('close')
-            const self = document.getElementById(data.user_number)
-            const parent = self.parentElement
-            const removed = parent.removeChild(self)
-            // The connection has been closed
-            break;
-        }
-      }
-
 
       // 把拿到的offer设置到连接
       peerConnection
@@ -439,32 +474,6 @@ export default {
           document.getElementById(user.number).srcObject = event.stream
         }
       }
-      peerConnection.onremovestream = event => {
-        const self = document.getElementById(user.number)
-        const parent = self.parentElement
-        const removed = parent.removeChild(self)
-      }
-      peerConnection.onconnectionstatechange = event => {
-        switch(peerConnection.connectionState) {
-          case "connected":
-            console.log('connected')
-            // The connection has become fully connected
-            break;
-          case "disconnected":
-            break;
-          case "failed":
-            console.log('failed')
-            // One or more transports has terminated unexpectedly or in an error
-            break;
-          case "closed":
-            console.log('close')
-            const self = document.getElementById(user.number)
-            const parent = self.parentElement
-            const removed = parent.removeChild(self)
-            // The connection has been closed
-            break;
-        }
-      }
 
       peerConnection
         .createOffer()
@@ -527,9 +536,6 @@ export default {
         this.remoteVideo.srcObject = event.stream
       }
     }
-  },
-  beforeDestroy () {
-    this.close()
   },
   // 路由守卫
   beforeRouteLeave(to, from, next) {

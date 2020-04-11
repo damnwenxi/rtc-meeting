@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-07 22:38:40
+ * @LastEditTime : 2020-04-11 11:56:15
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -65,6 +65,19 @@ io.on('connection', socket => {
         user_role: data.user_role,
         user_number: data.user_number
       })
+    }
+
+    // 用户离开
+    if (data.type === 'leave_room') {
+      console.log(data.user_name + '离开了房间：' + data.room_id)
+      io.to(data.room_id).emit('message', {
+        type: 'user_leave',
+        user_name: data.user_name,
+        room_id: data.room_id,
+        user_role: data.user_role,
+        user_number: data.user_number
+      })
+      socket.leave(data.room_id)
     }
 
     // 聊天
