@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-11 12:44:07
+ * @LastEditTime : 2020-04-11 15:11:00
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -10,27 +10,29 @@
   <div class="room">
     <div class="room-info-tip">
       <span class="room-code" v-if="code">参加码： {{code}}</span>
-      <br />
       <span class="room-password" v-if="password">密码： {{password}}</span>
     </div>
 
     <div id="video-list">
-      <video id="local-video" autoplay playsinline class="video" src></video>
-      <video
-        v-for="item in remoteUserList"
-        :key="item.number"
-        :id="item.number"
-        autoplay
-        playsinline
-        class="video"
-        src
-      ></video>
-    </div>
-
-    <div class="btn-wrap">
-      <v-btn @click="start()">start</v-btn>
-      <v-btn @click="call()">call</v-btn>
-      <v-btn @click="join()">join</v-btn>
+      <div class="video-wrap" :class="{'full-screen': fullScreen}">
+        <div class="video-info">
+          <span class="video-name">{{this.name}}</span>
+        </div>
+        <video id="local-video" autoplay playsinline class="video" src></video>
+      </div>
+      <div v-for="item in remoteUserList"
+          :key="item.number" class="video-wrap">
+        <div class="video-info">
+          <span class="video-name">{{item.name}}</span>
+        </div>
+        <video
+          :id="item.number"
+          autoplay
+          playsinline
+          class="video"
+          src
+        ></video>
+      </div>
     </div>
 
     <div class="footer-bar">
@@ -43,7 +45,7 @@
       <div @click="toggleChat()" :class="{'chat-active': showChat}" class="chat">
         <v-icon dark>mdi-message-text</v-icon>
       </div>
-      <div class="hang-up">
+      <div @click="hangup()" class="hang-up">
         <v-icon dark>mdi-phone-hangup</v-icon>
       </div>
     </div>
@@ -53,10 +55,45 @@
       v-model="showUserTip"
       right
       top
+      :color="'info'"
       :timeout="timeout"
     >
     <span>{{userTip.name}}</span>{{userTip.action}}了房间
     </v-snackbar>
+
+    <!-- close modal -->
+    <v-dialog
+      v-model="showDialog"
+      max-width="290"
+    >
+      <v-card>
+        <v-card-title class="headline">提示</v-card-title>
+
+        <v-card-text>
+          确定要退出会议吗？
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="showDialog = false"
+          >
+            取消
+          </v-btn>
+
+          <v-btn
+            color="green darken-1"
+            text
+            @click="quit()"
+          >
+            确定
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <Message :class="{'show-message': showChat}" />
   </div>
@@ -80,10 +117,15 @@ export default {
         name: '',
         action: ''
       },
+      showDialog: false,
       mediaStreamConstraints: {
-        video: true,
+        video: {
+          width: { min: 1024, ideal: 1280, max: 1920 },
+          height: { min: 480, ideal: 720, max: 1080 }
+        },
         audio: false
       },
+
       localStream: null,
       localVideo: null,
       remoteVideo: null,
@@ -112,7 +154,8 @@ export default {
         .toString()
         .substring(2, 8),
       // 当前房间内用户，这个数组由会议发起者负责更新
-      userList: []
+      userList: [],
+      fullScreen: true
     }
   },
   created() {
@@ -236,13 +279,17 @@ export default {
   },
   mounted() {
     this.localVideo = document.getElementById('local-video')
-    this.remoteVideo = document.getElementById('remote-video')
-    this.remoteVideoWrap = document.getElementById('remote-video-list')
   },
   watch: {
     userList: {
       deep: true,
       handler: function(newList, oldList) {
+        // 当前只有自己时全屏视频
+        if (newList.length > 1) {
+          this.fullScreen = false
+        } else {
+          this.fullScreen = true
+        }
         let newNameList = newList.map(item => item.name)
         let oldNameList = oldList.map(item => item.name)
         // 只有参会者响应这个变化
@@ -257,7 +304,7 @@ export default {
           deltaList.forEach(item => {
             setTimeout(() => {
               this.createPeerConnectionForSelf(item)
-            }, 1000)
+            }, 3000)
           })
         }
       }
@@ -293,6 +340,15 @@ export default {
         .then(this.gotLocalMediaStream)
         .catch(this.handleLocalMediaStreamError)
     },
+    quit () {
+      this.close()
+      this.$router.push({
+        name: 'Home'
+      })
+    },
+    hangup () {
+      this.showDialog = true
+    },
     close() {
       this.leaveRoom()
       // 关闭当前与自己的所有连接
@@ -303,8 +359,12 @@ export default {
       })
       this.pcList = []
       // 关闭摄像头与麦克风
-      this.videoTracks[0] && this.videoTracks[0].stop()
-      this.audioTracks[0] && this.audioTracks[0].stop()
+      this.videoTracks.forEach(item => {
+        item.stop()
+      })
+      this.audioTracks.forEach(item => {
+        item.stop()
+      })
     },
     // 离开房间
     leaveRoom () {
@@ -537,6 +597,9 @@ export default {
       }
     }
   },
+  beforDestory() {
+    this.close()
+  },
   // 路由守卫
   beforeRouteLeave(to, from, next) {
     this.close()
@@ -553,21 +616,22 @@ export default {
   left: 0;
   right: 0;
   z-index: 1;
-  background: #fff;
+  background: #333;
 
   .room-info-tip {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    border-left: 5px solid #0f4c81;
-    padding: 0 10px;
-    border-radius: 0 5px 5px 0;
+    top: 0;
+    height: 40px;
+    line-height: 40px;
+    width: 100%;
+    padding: 0 20px;
     font-size: 16px;
     color: #fff;
+    z-index: 1;
     background: rgba(0, 0, 0, 0.3);
 
     .room-password {
-      font-size: 12px;
+      margin-left: 30px;
     }
 
     .room-code {
@@ -626,17 +690,49 @@ export default {
     }
   }
 
-  #main-video {
-    position: absolute;
+  #video-list {
+    top: 40px;
+    bottom: 40px;
     width: 100%;
-    height: 100%;
-  }
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
 
-  .video {
-    top: 100px;
-    width: 300px;
-    height: 200px;
-    background: #000;
+    .video-wrap {
+      width: 48%;
+      height: 50%;
+      margin: 0 1%;
+      background: #000;
+      position: relative;
+
+      .video-info {
+        left: 0;
+        right: 0;
+        position: absolute;
+        top: 0;
+        height: 30px;
+        background: rgba(0,0,0,.7);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .video {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .full-screen {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      margin: 0;
+    }
   }
 }
 </style>

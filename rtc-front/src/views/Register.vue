@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime : 2020-04-05 15:35:39
+ * @LastEditTime : 2020-04-11 13:10:46
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Register.vue
@@ -60,6 +60,7 @@
 
 <script>
 import { register } from '../service/service'
+import {mapMutations} from 'vuex'
 
 export default {
   data() {
@@ -86,6 +87,7 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['updateLoginUser']),
     register() {
       register({
         name: this.username,
@@ -97,6 +99,10 @@ export default {
           this.$emit('tip', {
             code: res.data.code,
             msg: res.data.msg
+          })
+          this.updateLoginUser(res.data.user)
+          this.$router.push({
+            name: 'Home'
           })
         }
       })

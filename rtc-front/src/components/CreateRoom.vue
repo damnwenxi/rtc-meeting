@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime : 2020-04-07 21:42:55
+ * @LastEditTime : 2020-04-11 14:50:20
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -69,7 +69,7 @@ export default {
       joinPassword: '',
       title: '',
       nickName:
-        '编号' +
+        '用户' +
         Math.random()
           .toString()
           .substring(3, 8)

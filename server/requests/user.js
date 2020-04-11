@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-03-23 21:37:21
- * @LastEditTime : 2020-04-05 16:15:05
+ * @LastEditTime : 2020-04-11 13:17:46
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/requests/user.js
@@ -89,7 +89,21 @@ user.post('/register', (req, res) => {
             user.email,
             encryptedPassword
           ]).then(row => {
-            res.json({ code: 0, msg: '注册成功' })
+            console.log(row)
+            const token = jwt.sign({
+              user_id: row.insertId,
+              user_name: user.name,
+              user_avatar: '',
+              user_role: 0
+            }, secretKey, {
+              expiresIn: 60 * 60 * 24 * 3
+            })
+            res.json({ code: 0, msg: '注册成功',token, user: {
+              id: row.insertId,
+              name: user.name,
+              avatar: '',
+              role: 0
+            }})
           }).catch(err => {
             console.log(err)
             res.json({ code: -1, msg: '注册失败' })
