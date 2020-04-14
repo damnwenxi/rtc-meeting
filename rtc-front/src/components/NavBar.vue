@@ -1,7 +1,7 @@
 <!--
  * @Author: kefeng
  * @Date: 2020-02-22 21:43:49
- * @LastEditTime : 2020-04-07 22:20:38
+ * @LastEditTime : 2020-04-14 22:59:08
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/NavBar.vue
@@ -51,6 +51,7 @@ export default {
     ...mapMutations(['updateLoginUser']),
     logout() {
       this.updateLoginUser(null)
+      window.localStorage.removeItem('jwt_token')
     },
     goLogin() {
       this.$router.push({

@@ -1,15 +1,13 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-11 11:56:15
+ * @LastEditTime : 2020-04-14 22:56:50
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
  */
 const express = require('express')
 const app = express()
-// mysql 查询
-const query = require('./mysql/index')
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 const bodyParser = require('body-parser')
@@ -27,21 +25,8 @@ app.use('/user', user)
 app.use('/room', room)
 
 app.get('/', (req, res) => {
-
-  query('select * from songs').then(rows => {
-    res.json(rows)
-  }).catch(err => {
-    res.json(err)
-    console.log(err)
-  })
-
+  res.json({code: 0, msg: 'ok'})
 })
-
-app.post('/createRoom', (req, res) => {
-
-})
-
-let offer = ''
 
 io.on('connection', socket => {
 

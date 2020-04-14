@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-13 23:42:58
+ * @LastEditTime : 2020-04-14 23:47:43
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -308,12 +308,23 @@ export default {
               item.name !== this.name && oldNameList.indexOf(item.name) === -1
             )
           })
+          console.log('新增用户:'+ deltaList)
 
+          // 如果新增的用户数量大于1，那说明是刚加入的自己，此时只需要给会议发起者创建offer
+          if (deltaList.length > 1) {
+            deltaList.forEach((item, index) => {
+              if (item.role === 0) {
+                this.createPeerConnectionForSelf(item)
+              }
+            })
+            return
+          }
           // 拿到新增用户
-          deltaList.forEach(item => {
+          // 这里注意闭包
+          deltaList.forEach((item, index) => {
             setTimeout(() => {
               this.createPeerConnectionForSelf(item)
-            }, 3000)
+            }, 1000*(index+1))
           })
         }
       }
@@ -454,20 +465,20 @@ export default {
           })
         }
       }
-      peerConnection.oniceconnectionstatechange = event => {
-        console.log('ice 改变了:')
-        if (event && event.candidate) {
-          socket.send({
-            type: 'icecandidate',
-            icecandidate: event.candidate,
-            from: this.name,
-            to: data.user_name,
-            room_id: this.code,
-            user_role: this.role,
-            user_number: this.number
-          })
-        }
-      }
+      // peerConnection.oniceconnectionstatechange = event => {
+      //   console.log('ice 改变了:')
+      //   if (event && event.candidate) {
+      //     socket.send({
+      //       type: 'icecandidate',
+      //       icecandidate: event.candidate,
+      //       from: this.name,
+      //       to: data.user_name,
+      //       room_id: this.code,
+      //       user_role: this.role,
+      //       user_number: this.number
+      //     })
+      //   }
+      // }
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(data.user_number).srcObject = event.stream
@@ -503,10 +514,12 @@ export default {
      * 没有参数
      */
     createPeerConnectionForSelf(user) {
+      console.log(user)
       const peerConnection = new RTCPeerConnection(this.pcConfig)
       this.pcList.push({
         user: user.name,
-        pc: peerConnection
+        pc: peerConnection,
+        number: user.number
       })
       peerConnection.addStream(this.localStream)
 
@@ -524,20 +537,20 @@ export default {
           })
         }
       }
-      peerConnection.oniceconnectionstatechange = event => {
-        console.log('ice 成功获取:')
-        if (event && event.candidate) {
-          socket.send({
-            type: 'icecandidate',
-            icecandidate: event.candidate,
-            from: this.name,
-            to: user.name,
-            room_id: this.code,
-            user_role: this.role,
-            user_number: this.number
-          })
-        }
-      }
+      // peerConnection.oniceconnectionstatechange = event => {
+      //   console.log('ice 成功获取:')
+      //   if (event && event.candidate) {
+      //     socket.send({
+      //       type: 'icecandidate',
+      //       icecandidate: event.candidate,
+      //       from: this.name,
+      //       to: user.name,
+      //       room_id: this.code,
+      //       user_role: this.role,
+      //       user_number: this.number
+      //     })
+      //   }
+      // }
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(user.number).srcObject = event.stream
