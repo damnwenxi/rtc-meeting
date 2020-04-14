@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-23 23:54:48
- * @LastEditTime : 2020-04-11 14:50:12
+ * @LastEditTime : 2020-04-14 22:26:14
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/JoinRoom.vue
@@ -34,8 +34,8 @@
                   required
                 ></v-text-field>
               </v-col>
-              <v-col v-if="needPassword" cols="12">
-                <v-text-field v-model="password" label="密码" type="password" required></v-text-field>
+              <v-col cols="12">
+                <v-text-field hint="没有可不填" v-model="password" label="密码" type="password"></v-text-field>
               </v-col>
             </v-row>
           </v-card-text>
@@ -51,11 +51,12 @@
 </template>
 
 <script>
+import {JoinRoom} from '../service/service'
+
 export default {
   data() {
     return {
       dialog: false,
-      needPassword: false,
       code: '',
       password: '',
       nickName:
@@ -71,15 +72,33 @@ export default {
     },
     join() {
       if (this.validate()) {
-        this.$router.push({
-          path: '/room',
-          query: {
-            code: this.code,
-            password: this.password,
-            name: this.nickName,
-            // as the  participator
-            role: 1
+        JoinRoom({
+          room_id: this.code,
+          password: this.password
+        }).then(res => {
+          if(res.data && res.data.code === 0){
+            this.$router.push({
+              path: '/room',
+              query: {
+                code: res.data.room_id,
+                password: this.password,
+                name: this.nickName,
+                title: res.data.title,
+                // as the  participator
+                role: 1
+              }
+            })
+          } else {
+            this.$emit('tip', {
+              code: -1,
+              msg: res.data.msg
+            })
           }
+        }).catch(error => {
+          this.$emit('tip', {
+            code: -1,
+            msg: res.data.msg
+          })
         })
       }
     },
@@ -88,4 +107,4 @@ export default {
     }
   }
 }
-</script>>
+</script>

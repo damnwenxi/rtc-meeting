@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-11 15:11:00
+ * @LastEditTime : 2020-04-13 23:42:58
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -141,6 +141,15 @@ export default {
             urls: 'turn:129.211.64.178:3478',
             username: 'kefeng',
             credential: '123456'
+          },
+          {
+            urls: 'stun:stun.l.google.com:19302'
+          },
+          {
+            urls: 'stun:stun1.l.google.com:19302'
+          },
+          {
+            urls: 'stun:stun2.l.google.com:19302'
           }
         ]
       },
@@ -719,11 +728,13 @@ export default {
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 1;
       }
 
       .video {
         width: 100%;
         height: 100%;
+        transform: rotateY(180deg);
       }
     }
 

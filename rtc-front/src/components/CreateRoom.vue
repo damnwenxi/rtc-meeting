@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime : 2020-04-11 14:50:20
+ * @LastEditTime : 2020-04-14 22:17:50
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -19,7 +19,7 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="title"
-                  :rules="[() => !!title || '请输入昵称']"
+                  :rules="[() => !!title || '请输入会议名称']"
                   label="会议名称"
                   required
                 ></v-text-field>
@@ -43,6 +43,9 @@
             <small v-else>输入参加码即可加入会议</small>
           </v-card-text>
           <v-card-actions>
+            <span v-if="errorMsg" class="error-tip">
+              {{errorMsg}}
+            </span>
             <v-spacer></v-spacer>
             <v-btn large @click="dialog = false">取消</v-btn>
             <v-btn
@@ -68,6 +71,7 @@ export default {
       needPassword: false,
       joinPassword: '',
       title: '',
+      errorMsg: '',
       nickName:
         '用户' +
         Math.random()
@@ -80,10 +84,18 @@ export default {
       this.dialog = true
     },
     create() {
-      if (!this.nickName || !this.title) {
+      if (!this.nickName) {
+        this.errorMsg = '请输入昵称'
         return
       }
-
+      if (!this.title) {
+        this.errorMsg = '请输入会议名称'
+        return
+      }
+      if (this.needPassword && !this.joinPassword) {
+        this.errorMsg = '请输入会议密码'
+        return
+      }
       createRoom({
         owner: 'hhh',
         owner_id: '123',
@@ -104,10 +116,29 @@ export default {
               role: 0
             }
           })
+        } else {
+          this.$emit('tip', {
+            code: res.data.code,
+            msg: res.data.msg
+          })
         }
       })
     }
   },
-  watch: {}
+  watch: {
+    errorMsg(val) {
+      if (val) {
+        setTimeout(() => {
+          this.errorMsg = ''
+        }, 3000)
+      }
+    }
+  }
 }
-</script>>
+</script>
+
+<style lang="scss" scoped>
+.error-tip{
+  color: red;
+}
+</style>

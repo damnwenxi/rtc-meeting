@@ -2,7 +2,7 @@
  * @Date         : 2020-03-24 00:00:19
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-03 23:39:31
+ * @LastEditTime : 2020-04-14 22:22:05
  * @FilePath     : /rtc-meeting/server/requests/room.js
  */
 
@@ -31,7 +31,7 @@ room.post('/create', (req, res) => {
   }
   // 生成参加码
   let code = Math.random().toString().substring(2, 8)
-  let needPassword = data.need_password || 0
+  let needPassword = data.need_password ? 1 : 0
   let password = needPassword ? data.password : 'null'
 
   // 查一下当前有没有正在进行中的会议参加码跟这个一样
@@ -74,7 +74,48 @@ room.post('/create', (req, res) => {
  * @return: 
  */
 room.post('/join', (req, res) => {
-  res.send('this is the join room api')
+  try {
+    const data = req.body
+    if (!data.room_id){
+      res.json({code: 1001,msg:'请输入参加码'})
+    }
+
+    query('SELECT * FROM room WHERE code = ?', [data.room_id]).then(row => {
+      // 会议不存在
+      if(row.length < 1) {
+        res.json({
+          code: 1002,
+          msg: '会议不存在'
+        })
+      } else {
+        let meeting = row[0]
+        // 会议存在但已结束
+        if(meeting.status == 0) {
+          res.json({
+            code: 1003,
+            msg: '当前会议已结束'
+          })
+        } else if(meeting.need_password && meeting.password !== data.password){
+          res.json({
+            code: 1004,
+            msg: '参会密码错误'
+          })
+        } else {
+          res.json({
+            code: 0,
+            room_id: meeting.code,
+            title: meeting.title,
+            need_password: meeting.need_password
+          })
+        }
+      }
+    })
+  } catch (error) {
+    res.json({
+      code: -1,
+      msg: 'system error'
+    })
+  }
 })
 
 module.exports = room

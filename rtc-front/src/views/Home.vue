@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime : 2020-04-05 15:36:02
+ * @LastEditTime : 2020-04-14 22:07:18
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Home.vue
@@ -36,9 +36,9 @@
       </div>
     </div>
 
-    <JoinRoom ref="joinModal" />
+    <JoinRoom @tip="appTip($event)" ref="joinModal" />
 
-    <CreateRoom ref="createModal" />
+    <CreateRoom @tip="appTip($event)" ref="createModal" />
   </div>
 </template>
  
@@ -60,6 +60,13 @@ export default {
     },
     createRoom() {
       this.$refs.createModal.show()
+    },
+    // 这里把自组件向上传递来的tip传递到根组件
+    appTip(data) {
+      this.$emit('tip', {
+        code: data.code,
+        msg: data.msg
+      })
     }
   }
 }

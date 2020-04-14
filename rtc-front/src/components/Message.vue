@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:43:46
- * @LastEditTime : 2020-04-07 23:25:27
+ * @LastEditTime : 2020-04-13 23:45:02
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/Message.vue
@@ -117,7 +117,7 @@ export default {
   bottom: 40px;
   right: -100%;
   width: 300px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   padding: 0 12px;
   transition: right 0.5s;
   display: flex;
@@ -125,6 +125,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   align-content: center;
+  z-index: 10;
 
   .title {
     width: 100%;
@@ -180,7 +181,7 @@ export default {
         }
 
         .content {
-          background: rgba(0,0,0,.4);
+          background: #333;
           padding: 7px;
           margin: 5px 0;
           border-radius: 5px;

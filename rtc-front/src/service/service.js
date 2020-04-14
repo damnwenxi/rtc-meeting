@@ -1,7 +1,7 @@
 /*
  * @Date         : 2020-03-24 23:01:12
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-03 23:52:50
+ * @LastEditTime : 2020-04-14 21:44:34
  * @FilePath     : /rtc-meeting/rtc-front/src/service/service.js
  */
 
@@ -59,3 +59,16 @@ export function createRoom(params) {
     need_password: params.need_password
   })
 }
+
+/**
+ * @description: 加入会议
+ * @param {Object} 
+ * @return: Promise
+ */
+export function JoinRoom(params) {
+  return axios.post('/api/room/join', {
+    room_id: params.room_id,
+    password: params.password
+  })
+}
+

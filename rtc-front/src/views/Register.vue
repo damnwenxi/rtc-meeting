@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:10
- * @LastEditTime : 2020-04-11 13:10:46
+ * @LastEditTime : 2020-04-12 20:27:35
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Register.vue
@@ -9,7 +9,7 @@
 <template>
   <div class="register">
     <v-card class="register-card" max-width="1080" max-height="560">
-      <v-img class="left-image" src="../assets/img/login-left.jpeg"></v-img>
+      <v-img class="left-image" src="../assets/img/login-left.jpg"></v-img>
       <v-form ref="registerForm" class="right-form" v-model="valid">
         <h1 class="register-title">注册帐号</h1>
         <v-text-field
@@ -94,12 +94,11 @@ export default {
         email: this.email,
         password: this.password1
       }).then(res => {
-        console.log(res)
-        if (res.data && res.data.msg) {
-          this.$emit('tip', {
-            code: res.data.code,
-            msg: res.data.msg
-          })
+        this.$emit('tip', {
+          code: res.data.code,
+          msg: res.data.msg
+        })
+        if (res.data && res.data.code === 0) {
           this.updateLoginUser(res.data.user)
           this.$router.push({
             name: 'Home'

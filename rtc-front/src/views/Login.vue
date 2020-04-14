@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:00
- * @LastEditTime : 2020-04-10 21:50:56
+ * @LastEditTime : 2020-04-12 20:27:26
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Login.vue
@@ -9,7 +9,7 @@
 <template>
   <div class="login">
     <v-card class="login-card" max-width="1080" max-height="560">
-      <v-img class="left-image" src="../assets/img/login-left.jpeg"></v-img>
+      <v-img class="left-image" src="../assets/img/login-left.jpg"></v-img>
       <v-form ref="loginForm" class="right-form" v-model="valid">
         <h1 class="login-title">登录</h1>
         <v-text-field
