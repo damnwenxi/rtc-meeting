@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-14 22:56:50
+ * @LastEditTime : 2020-04-17 13:39:32
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -125,6 +125,20 @@ io.on('connection', socket => {
         room_id: data.room_id,
         user_role: data.user_role,
         user_number: data.user_number
+      })
+    }
+
+    // 发送文件
+    if (data.type === 'send_file') {
+      console.log(data)
+      io.to(data.room_id).emit('message', {
+        type: 'send_file_res',
+        from: data.from,
+        room_id: data.room_id,
+        number: data.number,
+        time: data.time,
+        file_size: data.file_size,
+        file_name: data.file_name
       })
     }
   })
