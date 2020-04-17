@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-14 23:47:43
+ * @LastEditTime : 2020-04-17 16:37:47
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -18,7 +18,7 @@
         <div class="video-info">
           <span class="video-name">{{this.name}}</span>
         </div>
-        <video id="local-video" autoplay playsinline class="video" src></video>
+        <video id="local-video" autoplay playsinline class="video" :class="{'screen': isScreenShare}" src></video>
       </div>
       <div v-for="item in remoteUserList"
           :key="item.number" class="video-wrap">
@@ -30,6 +30,7 @@
           autoplay
           playsinline
           class="video"
+          :class="{'screen': isScreenShare}"
           src
         ></video>
       </div>
@@ -42,7 +43,15 @@
       </div>
       <div class="room-title">{{title || ''}}</div>
 
-      <div @click="toggleChat()" :class="{'chat-active': showChat}" class="chat">
+      <div @click="screenShare()" :class="{'icon-active': isScreenSharing}" class="screen">
+        <v-icon dark>mdi-monitor-screenshot</v-icon>
+      </div>
+
+      <div @click="toggleFile()" :class="{'icon-active': showFile}" class="file">
+        <v-icon dark>mdi-folder</v-icon>
+      </div>
+
+      <div @click="toggleChat()" :class="{'icon-active': showChat}" class="chat">
         <v-icon dark>mdi-message-text</v-icon>
       </div>
       <div @click="hangup()" class="hang-up">
@@ -95,18 +104,24 @@
       </v-card>
     </v-dialog>
 
+    <!-- 聊天组件 -->
     <Message :class="{'show-message': showChat}" />
+
+    <!-- 文件管理组件 -->
+    <FileManager :pcList="pcList" v-show="showFile" @close="showFile = false" />
   </div>
 </template>
 
 <script>
 import socket from '../dep/socket'
 import Message from '../components/Message'
+import FileManager from '../components/FileManager'
 import {mapGetters, mapMutations} from 'vuex'
 
 export default {
   components: {
-    Message
+    Message,
+    FileManager
   },
   data() {
     return {
@@ -127,11 +142,14 @@ export default {
       },
 
       localStream: null,
+      localScreenStream: null,
       localVideo: null,
       remoteVideo: null,
       socket: null,
       mainUser: '主视频',
       showChat: false,
+      showFile: false,
+      isScreenShare: false,
       // pcList peerConnection 列表
       pcList: [],
       // ICE服务器列表
@@ -168,6 +186,11 @@ export default {
     }
   },
   created() {
+    // 监听一下unload事件
+    window.onbeforeunload = (e) => {
+      const flag = window.event || e
+      flag.returnValue = ('确定要离开此页面吗？')
+    }
     // 从路由拿房间信息
     this.code = this.$route.query.code
     this.password = this.$route.query.password
@@ -189,7 +212,13 @@ export default {
       })
       return
     }
-    this.start()
+    if (this.$route.query.type === 'screen') {
+      this.screenShare()
+      this.isScreenShare = true
+    } else{
+      this.start()
+    }
+    
     // 在这里处理所有的建立连接相关的websocket信息
     // 这里要先清除所有的监听事件，否则会引发重复监听
     // 客户端只监听message这一个事件，根据message的type不同作出不同反应
@@ -310,7 +339,7 @@ export default {
           })
           console.log('新增用户:'+ deltaList)
 
-          // 如果新增的用户数量大于1，那说明是刚加入的自己，此时只需要给会议发起者创建offer
+          // 如果新增的用户数量大于1，那说明是刚加入的自己，此时只需要给会议发起者创建连接
           if (deltaList.length > 1) {
             deltaList.forEach((item, index) => {
               if (item.role === 0) {
@@ -319,9 +348,10 @@ export default {
             })
             return
           }
-          // 拿到新增用户
+          // 拿到新增用户,为新增用户创建连接
           // 这里注意闭包
           deltaList.forEach((item, index) => {
+            console.log(item)
             setTimeout(() => {
               this.createPeerConnectionForSelf(item)
             }, 1000*(index+1))
@@ -348,11 +378,23 @@ export default {
       })
     },
     userCount () {
-      return this.userList.length || 0
+      return this.userList.length || 1
     }
   },
   methods: {
     ...mapMutations(['updateLoginUser', 'updateUser']),
+    screenShare() {
+      const option = {
+        video: true
+      }
+      navigator.mediaDevices
+        .getDisplayMedia(option)
+        .then(this.gotLocalMediaStream)
+        .catch(this.handleLocalMediaStreamError)
+    },
+    toggleFile() {
+      this.showFile = !this.showFile
+    },
     start() {
       navigator.mediaDevices
         .getUserMedia(this.mediaStreamConstraints)
@@ -378,6 +420,7 @@ export default {
         item.pc = null
       })
       this.pcList = []
+      this.userList = []
       // 关闭摄像头与麦克风
       this.videoTracks.forEach(item => {
         item.stop()
@@ -399,7 +442,6 @@ export default {
     // 关闭与某用户的连接
     closePeerConnection (user_number) {
       console.log(user_number)
-      console.log(this.pcList)
       this.pcList.forEach(item => {
         if (item.number === user_number) {
           item.pc.close()
@@ -414,15 +456,22 @@ export default {
       // 此时再加入房间
       this.joinRoom()
     },
-
-    joinRoom() {
+    // 获取到本地屏幕分享源
+    gotScreenStream(mediaStream) {
+      this.localScreenStream = mediaStream
+      this.joinRoom({
+        isScreenShare: true
+      })
+    },
+    joinRoom(option) {
+      let isScreenShare = option && option.isScreenShare
       // 第一步加入教室
       socket.send({
         type: 'join_room',
-        user_name: this.name,
+        user_name: isScreenShare ? this.name + '的屏幕分享' : this.name,
         room_id: this.code,
-        user_role: this.role,
-        user_number: this.number
+        user_role: isScreenShare ? 1 : this.role,
+        user_number: isScreenShare ? this.number + '_share' : this.number
       })
     },
     // 获取本地媒体流失败回调
@@ -441,15 +490,25 @@ export default {
      */
     createPeerConnectionForRemote(data) {
       let peerConnection = new RTCPeerConnection(this.pcConfig)
+      let sendChannel = peerConnection.createDataChannel('file_channel_for_'+data.from)
+      sendChannel.binaryType = 'arraybuffer'
+      sendChannel.addEventListener('open', () => {
+        const readyState = sendChannel.readyState
+        console.log(`Send channel for ${data.from} state is: ${readyState}`)
+      })
       this.pcList.push({
         user: data.from,
         number: data.user_number,
-        pc: peerConnection
+        pc: peerConnection,
+        sendChannel
       })
+
+      // 判断是不是屏幕分享
+      let isScreenShare = data.user_number.includes('share')
 
       // 这里是个巨坑，要在createOffer/Answer之前把媒体流挂载到连接上，不然永远不会触发icecandidate
       // 挖个坟
-      peerConnection.addStream(this.localStream)
+      peerConnection.addStream(isScreenShare ? this.localScreenStream : this.localStream)
       // 给peerConnection绑定事件
       peerConnection.onicecandidate = event => {
         console.log('ice 成功获取:')
@@ -514,12 +573,18 @@ export default {
      * 没有参数
      */
     createPeerConnectionForSelf(user) {
-      console.log(user)
-      const peerConnection = new RTCPeerConnection(this.pcConfig)
+      let peerConnection = new RTCPeerConnection(this.pcConfig)
+      let sendChannel = peerConnection.createDataChannel('file_channel_for_'+user.name)
+      sendChannel.binaryType = 'arraybuffer'
+      sendChannel.addEventListener('open', () => {
+        const readyState = sendChannel.readyState
+        console.log(`Send channel for state is: ${readyState}`)
+      })
       this.pcList.push({
         user: user.name,
         pc: peerConnection,
-        number: user.number
+        number: user.number,
+        sendChannel
       })
       peerConnection.addStream(this.localStream)
 
@@ -537,20 +602,6 @@ export default {
           })
         }
       }
-      // peerConnection.oniceconnectionstatechange = event => {
-      //   console.log('ice 成功获取:')
-      //   if (event && event.candidate) {
-      //     socket.send({
-      //       type: 'icecandidate',
-      //       icecandidate: event.candidate,
-      //       from: this.name,
-      //       to: user.name,
-      //       room_id: this.code,
-      //       user_role: this.role,
-      //       user_number: this.number
-      //     })
-      //   }
-      // }
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(user.number).srcObject = event.stream
@@ -684,7 +735,7 @@ export default {
       text-align: center;
     }
 
-    .chat {
+    .chat, .file, .screen {
       margin-right: 20px;
       height: 30px;
       width: 30px;
@@ -694,7 +745,7 @@ export default {
       border-radius: 50%;
     }
 
-    .chat-active {
+    .icon-active {
       background: rgba(255, 255, 255, 0.9);
       i {
         color: #0f4c81;
@@ -748,6 +799,10 @@ export default {
         width: 100%;
         height: 100%;
         transform: rotateY(180deg);
+      }
+
+      .screen{
+        transform: none;
       }
     }
 
