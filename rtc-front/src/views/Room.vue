@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-17 16:37:47
+ * @LastEditTime : 2020-04-17 22:28:05
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -43,7 +43,7 @@
       </div>
       <div class="room-title">{{title || ''}}</div>
 
-      <div @click="screenShare()" :class="{'icon-active': isScreenSharing}" class="screen">
+      <div @click="screenShare()" :class="{'icon-active': isScreenShare}" class="screen">
         <v-icon dark>mdi-monitor-screenshot</v-icon>
       </div>
 

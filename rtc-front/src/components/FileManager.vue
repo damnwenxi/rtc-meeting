@@ -2,7 +2,7 @@
  * @Date         : 2020-04-16 12:11:38
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-17 16:08:21
+ * @LastEditTime : 2020-04-17 22:33:06
  * @FilePath     : /rtc-meeting/rtc-front/src/components/FileManager.vue
  -->
 <template>
@@ -199,7 +199,6 @@ export default {
   width: 60%;
   background: #1E1E1E;
   color: #fff;
-  opacity: .8;
   z-index: 2;
 
   .file-title {

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-23 23:54:48
- * @LastEditTime : 2020-04-17 16:35:25
+ * @LastEditTime : 2020-04-17 22:27:01
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/JoinRoom.vue
@@ -86,7 +86,7 @@ export default {
                 title: res.data.title,
                 // as the  participator
                 role: 1,
-                type: 'screen'
+                // type: 'screen'
               }
             })
           } else {
