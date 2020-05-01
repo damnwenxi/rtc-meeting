@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 13:22:22
- * @LastEditTime : 2020-04-11 13:08:14
+ * @LastEditTime : 2020-05-01 11:28:40
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/App.vue
@@ -41,6 +41,7 @@ export default {
   methods: {
     ...mapMutations(['updateLoginUser']),
     appTip(data) {
+      console.log('tip')
       this.color = this.getTipColor(data.code)
       this.tip = data.msg
       this.snackbar = true

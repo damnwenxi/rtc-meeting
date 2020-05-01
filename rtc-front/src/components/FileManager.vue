@@ -2,7 +2,7 @@
  * @Date         : 2020-04-16 12:11:38
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-17 22:33:06
+ * @LastEditTime : 2020-05-01 12:20:18
  * @FilePath     : /rtc-meeting/rtc-front/src/components/FileManager.vue
  -->
 <template>
@@ -30,7 +30,7 @@
             <td>{{ item.size }}</td>
             <td>{{ item.upload_date }}</td>
             <td>
-              <span class="download-btn" @click="download(item.id)">下载</span>
+              <span class="download-btn" @click="downloadFile(item.id)">下载</span>
             </td>
           </tr>
         </tbody>
@@ -121,8 +121,16 @@ export default {
         return item.id === number
       })[0]
     }, 
-    download(id) {
+    downloadFile(id) {
       console.log(id)
+      let file = this.findCurrentFile(id)
+      let alink = document.createElement('a')
+      alink.href = file.downloadUrl
+      alink.download = file.filename
+      alink.style.display = 'none'
+      document.body.appendChild(alink)
+      alink.click()
+      document.body.removeChild(alink)
     },
     close() {
       this.$emit('close')
@@ -220,6 +228,7 @@ export default {
     padding: 4px 10px;
     border-radius: 4px;
     cursor: pointer;
+    color: #fff;
   }
 
   .send {

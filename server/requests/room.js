@@ -2,7 +2,7 @@
  * @Date         : 2020-03-24 00:00:19
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-04-14 22:22:05
+ * @LastEditTime : 2020-05-01 12:01:37
  * @FilePath     : /rtc-meeting/server/requests/room.js
  */
 
@@ -89,6 +89,7 @@ room.post('/join', (req, res) => {
         })
       } else {
         let meeting = row[0]
+        console.log(row[0])
         // 会议存在但已结束
         if(meeting.status == 0) {
           res.json({

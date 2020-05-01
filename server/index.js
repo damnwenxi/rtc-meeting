@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-17 13:39:32
+ * @LastEditTime : 2020-04-27 21:56:58
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -145,6 +145,6 @@ io.on('connection', socket => {
 
 })
 
-http.listen(3001, () => {
+http.listen(3000, () => {
   console.log("app is running on port 3000.")
 })

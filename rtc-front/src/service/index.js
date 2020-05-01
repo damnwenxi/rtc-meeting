@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-03-24 23:01:19
- * @LastEditTime : 2020-04-14 23:18:00
+ * @LastEditTime : 2020-05-01 11:48:13
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/service/index.js
@@ -42,9 +42,11 @@ axios.interceptors.response.use(
     // 身份验证失败
     if (error.response.status == 401) {
       window.localStorage.removeItem('jwt_token')
-      router.push({
-        name:'Login'
-      })
+      setTimeout(() => {
+        router.push({
+          name:'Login'
+        })
+      }, 2000)
     }
     return Promise.reject(error.response);
   }

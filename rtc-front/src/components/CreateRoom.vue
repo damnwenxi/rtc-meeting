@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime : 2020-04-14 22:17:50
+ * @LastEditTime : 2020-05-01 11:39:34
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -120,6 +120,13 @@ export default {
           this.$emit('tip', {
             code: res.data.code,
             msg: res.data.msg
+          })
+        }
+      }).catch(res => {
+        if(res.status == 401){
+          this.$emit('tip', {
+            code: -1,
+            msg: '登录信息已过期，请重新登录'
           })
         }
       })
