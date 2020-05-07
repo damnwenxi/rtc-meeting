@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime : 2020-04-14 22:07:18
+ * @LastEditTime : 2020-05-07 21:25:56
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Home.vue
@@ -45,10 +45,14 @@
 <script>
 import JoinRoom from '../components/JoinRoom'
 import CreateRoom from '../components/CreateRoom'
+import {mapGetters} from 'vuex'
 
 export default {
   data() {
     return {}
+  },
+  computed: {
+    ...mapGetters(['loginUser'])
   },
   components: {
     JoinRoom,
@@ -59,6 +63,13 @@ export default {
       this.$refs.joinModal.show()
     },
     createRoom() {
+      if (!this.loginUser) {
+        console.log(this.loginUser)
+        this.$router.push({
+          name: 'Login'
+        })
+        return
+      }
       this.$refs.createModal.show()
     },
     // 这里把自组件向上传递来的tip传递到根组件

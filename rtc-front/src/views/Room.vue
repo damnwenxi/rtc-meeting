@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-04-17 22:28:05
+ * @LastEditTime : 2020-05-07 22:04:25
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -108,7 +108,7 @@
     <Message :class="{'show-message': showChat}" />
 
     <!-- 文件管理组件 -->
-    <FileManager :pcList="pcList" v-show="showFile" @close="showFile = false" />
+    <FileManager @tip="tip($event)" :pcList="pcList" v-show="showFile" @close="showFile = false" />
   </div>
 </template>
 
@@ -383,6 +383,12 @@ export default {
   },
   methods: {
     ...mapMutations(['updateLoginUser', 'updateUser']),
+    tip(data) {
+      this.$emit('tip', {
+        code: data.code,
+        msg: data.msg
+      })
+    },
     screenShare() {
       const option = {
         video: true

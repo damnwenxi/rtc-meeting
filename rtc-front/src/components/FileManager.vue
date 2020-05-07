@@ -2,7 +2,7 @@
  * @Date         : 2020-04-16 12:11:38
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-05-01 12:20:18
+ * @LastEditTime : 2020-05-07 22:00:56
  * @FilePath     : /rtc-meeting/rtc-front/src/components/FileManager.vue
  -->
 <template>
@@ -71,7 +71,7 @@ export default {
             receiveChannel.binaryType = 'arraybuffer';
             receiveChannel.onmessage = event => {
               // 查找出此连接下的file并更新
-              let currentFile = this.findCurrentFile(item.number)
+              let currentFile = this.findCurrentFileByNumber(item.number)
               currentFile.receiveBuffer.push(event.data)
               currentFile.receivedSize += event.data.byteLength
               // 文件传输完成
@@ -93,7 +93,6 @@ export default {
     // 监听一下wss
     socket.on('message', data => {
       if (data.type === 'send_file_res') {
-        console.log(data)
         // 无论是发送者还是接收者都要把文件加入列表
         this.fileList.push({
           from: data.from,
@@ -101,7 +100,8 @@ export default {
           receivedSize: 0,
           size: data.file_size,
           filename: data.file_name,
-          id: data.number,
+          id: data.id,
+          user_number: data.number,
           // 用来存储文件
           receiveBuffer: []
         })
@@ -116,14 +116,20 @@ export default {
     ...mapGetters(['user'])
   },
   methods: {
-    findCurrentFile(number){
+    findCurrentFile(id){
       return this.fileList.filter(item => {
-        return item.id === number
+        return item.id == id
       })[0]
     }, 
+    findCurrentFileByNumber(number){
+      return this.fileList.filter(item => {
+        return item.user_number == number
+      })[0]
+    },
     downloadFile(id) {
       console.log(id)
       let file = this.findCurrentFile(id)
+      console.log(file)
       let alink = document.createElement('a')
       alink.href = file.downloadUrl
       alink.download = file.filename
@@ -152,27 +158,29 @@ export default {
       fileReader.addEventListener('error', error => console.error('Error reading file:', error));
       fileReader.addEventListener('abort', event => console.log('File reading aborted:', event));
       fileReader.addEventListener('load', e => {
-        console.log('FileRead.onload ', e);
         this.pcList.forEach(item => {
-          console.log(item)
           item.sendChannel.send(e.target.result)
           offset += e.target.result.byteLength;
           // sendProgress.value = offset;
           if (offset < this.selectFile.size) {
             readSlice(offset);
+          } else {
+            this.$emit('tip', {
+              code: 0,
+              msg: '发送成功'
+            })
+            this.selectFile = null
           }
         })        
       });
       const readSlice = o => {
-        console.log('readSlice ', o);
-        console.log(this.selectFile)
+        // console.log(this.selectFile)
         const slice = this.selectFile.slice(offset, o + chunkSize);
         fileReader.readAsArrayBuffer(slice);
       };
       readSlice(0);
     },
     send() {
-      console.log('333')
       if (!this.selectFile) {
         return
       }
@@ -186,7 +194,8 @@ export default {
         file_size: file.size,
         file_name: file.name,
         room_id: this.user.code,
-        number: this.user.number
+        user_number: this.user.number,
+        id: Math.random().toString().slice(-10)
       })
     }
   }

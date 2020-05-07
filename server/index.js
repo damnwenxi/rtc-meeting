@@ -1,15 +1,23 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-04-27 21:56:58
+ * @LastEditTime : 2020-05-07 21:36:14
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
  */
 const express = require('express')
 const app = express()
-const http = require('http').createServer(app)
-const io = require('socket.io')(http)
+const fs = require('fs')
+const pk = fs.readFileSync('./cert/2_itsadomain.xyz.key')
+const pc = fs.readFileSync('./cert/1_itsadomain.xyz_bundle.crt')
+// const https = require('https').createServer({
+//   key: pk,
+//   cert: pc
+// },app)
+const https = require('http').createServer(app)
+
+const io = require('socket.io')(https)
 const bodyParser = require('body-parser')
 
 const user = require('./requests/user')
@@ -20,13 +28,12 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(jwtAuth)
 
-
+app.use('/', express.static('dist'))
+// app.use('/api/user', user)
+// app.use('/api/room', room)
 app.use('/user', user)
 app.use('/room', room)
 
-app.get('/', (req, res) => {
-  res.json({code: 0, msg: 'ok'})
-})
 
 io.on('connection', socket => {
 
@@ -135,7 +142,8 @@ io.on('connection', socket => {
         type: 'send_file_res',
         from: data.from,
         room_id: data.room_id,
-        number: data.number,
+        number: data.user_number,
+        id: data.id,
         time: data.time,
         file_size: data.file_size,
         file_name: data.file_name
@@ -145,6 +153,6 @@ io.on('connection', socket => {
 
 })
 
-http.listen(3000, () => {
+https.listen(3000, () => {
   console.log("app is running on port 3000.")
 })
