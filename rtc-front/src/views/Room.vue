@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-05-09 00:11:36
+ * @LastEditTime : 2020-05-09 01:04:00
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -14,7 +14,7 @@
     </div>
 
     <div id="video-list">
-      <div class="video-wrap" :class="{'only-self': onlySelf}">
+      <div class="video-wrap" :class="{'only-self': onlySelf, 'full-screen':localVideoFull }">
         <div class="video-info">
           <span class="video-name">{{onlySelf?'等待用户加入': '我: ' + this.name}}</span>
         </div>
@@ -32,7 +32,7 @@
           <span class="video-name">{{item.name}}</span>
         </div>
         <div class="menu">
-          <span @click="toggleVideoFull(item.number)" class="icon-wrap">
+          <span @click="toggleVideoFull(item.number,item.full)" class="icon-wrap">
             <v-icon v-if="item.full" dark>mdi-fullscreen-exit</v-icon>
             <v-icon v-else dark>mdi-fullscreen</v-icon>
           </span>
@@ -249,7 +249,8 @@ export default {
               name: data.user_name,
               role: data.user_role,
               number: data.user_number,
-              joints: data.ts
+              joints: data.ts,
+              full: false
             })
           }
           console.log(this.userList)
@@ -389,12 +390,6 @@ export default {
       let list = this.userList.filter(user => {
         return user.number !== this.number
       })
-      list.forEach(item => {
-        if(!item.full) {
-          item.full = false
-        }
-      })
-      list[0] && (list[0].full = true)
       return list
     },
     userCount () {
@@ -404,19 +399,24 @@ export default {
   methods: {
     ...mapMutations(['updateLoginUser', 'updateUser']),
     toggleLocalVideoFull() {
-      if (this.localVideoFull) {
-        // 本地退出全屏把远程第一个用户的视频设为全屏
-        this.userList.forEach(user => {
-          if (user.number !== this.number) {
-            user.full = true
-          }
+      if (!this.localVideoFull) {
+        // 本地全屏要把其他设为非全屏
+        this.userList.forEach(item => {
+          item.full = false
         })
       }
       this.localVideoFull = !this.localVideoFull
     },
-    toggleVideoFull (number) {
+    toggleVideoFull (number, full) {
       this.userList.forEach(item => {
-        item.full = !item.full
+        if (number == item.number) {
+          item.full = !item.full
+        } else {
+          if (!full) {
+            item.full = false
+            this.localVideoFull = false
+          }
+        }
       })
     },
     // 开始屏幕分享
