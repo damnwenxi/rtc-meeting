@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-05-07 22:04:25
+ * @LastEditTime : 2020-05-09 00:11:36
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -14,23 +14,35 @@
     </div>
 
     <div id="video-list">
-      <div class="video-wrap" :class="{'full-screen': fullScreen}">
+      <div class="video-wrap" :class="{'only-self': onlySelf}">
         <div class="video-info">
-          <span class="video-name">{{this.name}}</span>
+          <span class="video-name">{{onlySelf?'等待用户加入': '我: ' + this.name}}</span>
+        </div>
+        <div v-if="!onlySelf" class="menu">
+          <span @click="toggleLocalVideoFull()" class="icon-wrap">
+            <v-icon v-if="localVideoFull" dark>mdi-fullscreen-exit</v-icon>
+            <v-icon v-else dark>mdi-fullscreen</v-icon>
+          </span>
         </div>
         <video id="local-video" autoplay playsinline class="video" :class="{'screen': isScreenShare}" src></video>
       </div>
       <div v-for="item in remoteUserList"
-          :key="item.number" class="video-wrap">
+          :key="item.number" class="video-wrap" :class="{'full-screen': item.full}" >
         <div class="video-info">
           <span class="video-name">{{item.name}}</span>
+        </div>
+        <div class="menu">
+          <span @click="toggleVideoFull(item.number)" class="icon-wrap">
+            <v-icon v-if="item.full" dark>mdi-fullscreen-exit</v-icon>
+            <v-icon v-else dark>mdi-fullscreen</v-icon>
+          </span>
         </div>
         <video
           :id="item.number"
           autoplay
           playsinline
           class="video"
-          :class="{'screen': isScreenShare}"
+          :class="{'screen': item.name.includes('屏幕')}"
           src
         ></video>
       </div>
@@ -43,7 +55,7 @@
       </div>
       <div class="room-title">{{title || ''}}</div>
 
-      <div @click="screenShare()" :class="{'icon-active': isScreenShare}" class="screen">
+      <div v-if="role==1" @click="startScreenShare()" :class="{'icon-active': isScreenShare}" class="screen">
         <v-icon dark>mdi-monitor-screenshot</v-icon>
       </div>
 
@@ -142,7 +154,6 @@ export default {
       },
 
       localStream: null,
-      localScreenStream: null,
       localVideo: null,
       remoteVideo: null,
       socket: null,
@@ -150,6 +161,7 @@ export default {
       showChat: false,
       showFile: false,
       isScreenShare: false,
+      localVideoFull: false,
       // pcList peerConnection 列表
       pcList: [],
       // ICE服务器列表
@@ -177,12 +189,10 @@ export default {
       name: '',
       role: '',
       title: '',
-      number: Math.random()
-        .toString()
-        .substring(2, 8),
+      number: '',
       // 当前房间内用户，这个数组由会议发起者负责更新
       userList: [],
-      fullScreen: true
+      onlySelf: true
     }
   },
   created() {
@@ -197,6 +207,7 @@ export default {
     this.name = this.$route.query.name
     this.role = this.$route.query.role
     this.title = this.$route.query.title
+    this.number = this.$route.query.number || Math.random().toString().substring(2, 8),
 
     this.updateUser({
       code: this.code,
@@ -231,13 +242,17 @@ export default {
         this.userTip.name = data.user_name
         this.userTip.action = '加入'
         // 会议发起者要更新当前房间内成员信息，并将这个列表给wss
-        if (this.role === 0) {
-          this.userList.push({
-            name: data.user_name,
-            role: data.user_role,
-            number: data.user_number,
-            joints: data.ts
-          })
+        if (this.role == 0) {
+          let exsitUser = this.userList.filter(item => item.number === data.user_number)
+          if (exsitUser.length<1) {
+              this.userList.push({
+              name: data.user_name,
+              role: data.user_role,
+              number: data.user_number,
+              joints: data.ts
+            })
+          }
+          console.log(this.userList)
           socket.send({
             type: 'user_update',
             user_list: this.userList,
@@ -273,7 +288,6 @@ export default {
           if (data.from === this.name) {
             return
           }
-          console.log(data.from + '的offer:')
           try {
             // 为新加入的远端用户新建一个peerConnection，拿到offer 要给远端发answer
             if (data.to === this.name) {
@@ -308,7 +322,7 @@ export default {
       // 房间成员更新
       if (data.type === 'user_update_res') {
         // 会议发起者不需要更新了
-        if (this.role === 0) {
+        if (this.role == 0) {
           return
         }
         this.userList = data.user_list
@@ -324,20 +338,19 @@ export default {
       handler: function(newList, oldList) {
         // 当前只有自己时全屏视频
         if (newList.length > 1) {
-          this.fullScreen = false
+          this.onlySelf = false
         } else {
-          this.fullScreen = true
+          this.onlySelf = true
         }
         let newNameList = newList.map(item => item.name)
         let oldNameList = oldList.map(item => item.name)
         // 只有参会者响应这个变化
-        if (this.role === 1) {
+        if (this.role == 1) {
           let deltaList = newList.filter(item => {
             return (
               item.name !== this.name && oldNameList.indexOf(item.name) === -1
             )
           })
-          console.log('新增用户:'+ deltaList)
 
           // 如果新增的用户数量大于1，那说明是刚加入的自己，此时只需要给会议发起者创建连接
           if (deltaList.length > 1) {
@@ -372,10 +385,17 @@ export default {
         return this.localStream.getAudioTracks()
       }
     },
-    remoteUserList() {
-      return this.userList.filter(user => {
+    remoteUserList () {
+      let list = this.userList.filter(user => {
         return user.number !== this.number
       })
+      list.forEach(item => {
+        if(!item.full) {
+          item.full = false
+        }
+      })
+      list[0] && (list[0].full = true)
+      return list
     },
     userCount () {
       return this.userList.length || 1
@@ -383,11 +403,51 @@ export default {
   },
   methods: {
     ...mapMutations(['updateLoginUser', 'updateUser']),
+    toggleLocalVideoFull() {
+      if (this.localVideoFull) {
+        // 本地退出全屏把远程第一个用户的视频设为全屏
+        this.userList.forEach(user => {
+          if (user.number !== this.number) {
+            user.full = true
+          }
+        })
+      }
+      this.localVideoFull = !this.localVideoFull
+    },
+    toggleVideoFull (number) {
+      this.userList.forEach(item => {
+        item.full = !item.full
+      })
+    },
+    // 开始屏幕分享
+    startScreenShare(){
+      this.$router.push({
+        path: '/room',
+        query: {
+          code: this.code,
+          password: this.password,
+          name: this.name+'的屏幕',
+          title: this.title,
+          // as the  participator
+          role: 1,
+          type: 'screen',
+          number: this.number+'1'
+        }
+      })
+
+      this.close()
+      location.reload()
+    },
+    // 全局通知
     tip(data) {
       this.$emit('tip', {
         code: data.code,
         msg: data.msg
       })
+    },
+    // 文件管理
+    toggleFile() {
+      this.showFile = !this.showFile
     },
     screenShare() {
       const option = {
@@ -397,9 +457,6 @@ export default {
         .getDisplayMedia(option)
         .then(this.gotLocalMediaStream)
         .catch(this.handleLocalMediaStreamError)
-    },
-    toggleFile() {
-      this.showFile = !this.showFile
     },
     start() {
       navigator.mediaDevices
@@ -462,22 +519,14 @@ export default {
       // 此时再加入房间
       this.joinRoom()
     },
-    // 获取到本地屏幕分享源
-    gotScreenStream(mediaStream) {
-      this.localScreenStream = mediaStream
-      this.joinRoom({
-        isScreenShare: true
-      })
-    },
-    joinRoom(option) {
-      let isScreenShare = option && option.isScreenShare
-      // 第一步加入教室
+    joinRoom() {
+      // 第一步加入会议
       socket.send({
         type: 'join_room',
-        user_name: isScreenShare ? this.name + '的屏幕分享' : this.name,
+        user_name: this.name,
         room_id: this.code,
-        user_role: isScreenShare ? 1 : this.role,
-        user_number: isScreenShare ? this.number + '_share' : this.number
+        user_role: this.role,
+        user_number: this.number
       })
     },
     // 获取本地媒体流失败回调
@@ -509,15 +558,12 @@ export default {
         sendChannel
       })
 
-      // 判断是不是屏幕分享
-      let isScreenShare = data.user_number.includes('share')
-
       // 这里是个巨坑，要在createOffer/Answer之前把媒体流挂载到连接上，不然永远不会触发icecandidate
       // 挖个坟
-      peerConnection.addStream(isScreenShare ? this.localScreenStream : this.localStream)
+      peerConnection.addStream(this.localStream)
       // 给peerConnection绑定事件
       peerConnection.onicecandidate = event => {
-        console.log('ice 成功获取:')
+        console.log('ice success:')
         if (event && event.candidate) {
           socket.send({
             type: 'icecandidate',
@@ -530,20 +576,6 @@ export default {
           })
         }
       }
-      // peerConnection.oniceconnectionstatechange = event => {
-      //   console.log('ice 改变了:')
-      //   if (event && event.candidate) {
-      //     socket.send({
-      //       type: 'icecandidate',
-      //       icecandidate: event.candidate,
-      //       from: this.name,
-      //       to: data.user_name,
-      //       room_id: this.code,
-      //       user_role: this.role,
-      //       user_number: this.number
-      //     })
-      //   }
-      // }
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(data.user_number).srcObject = event.stream
@@ -592,6 +624,7 @@ export default {
         number: user.number,
         sendChannel
       })
+      
       peerConnection.addStream(this.localStream)
 
       peerConnection.onicecandidate = event => {
@@ -775,17 +808,15 @@ export default {
     width: 100%;
     position: absolute;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
+    flex-direction: column;
+    align-content: flex-start;
+    overflow-y: auto;
 
     .video-wrap {
-      width: 48%;
-      height: 50%;
-      margin: 0 1%;
-      background: #000;
+      width: 300px;
+      margin: 10px;
       position: relative;
+      font-size: 0;
 
       .video-info {
         left: 0;
@@ -796,9 +827,29 @@ export default {
         background: rgba(0,0,0,.7);
         color: #fff;
         display: flex;
+        font-size: 14px;
         justify-content: center;
         align-items: center;
         z-index: 1;
+      }
+
+      .menu {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        z-index: 2;
+
+        .icon-wrap{
+          background: rgba(0,0,0,.5);
+          width: 30px;
+          height: 30px;
+          border-radius: 15px;
+          cursor: pointer;
+          margin: 0 10px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
       }
 
       .video {
@@ -812,11 +863,24 @@ export default {
       }
     }
 
-    .full-screen {
+    .only-self {
       width: 100%;
       height: 100%;
       position: absolute;
+      display: flex;
       margin: 0;
+    }
+
+    .full-screen {
+      position: fixed;
+      left: 320px;
+      right: 10px;
+      top: 50%;
+      margin: 0;
+      transform: translateY(-50%);
+      width: auto;
+      height: 86%;
+      background: #000;
     }
   }
 }

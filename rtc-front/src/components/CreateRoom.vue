@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-22 22:23:52
- * @LastEditTime : 2020-05-01 11:39:34
+ * @LastEditTime : 2020-05-08 22:29:23
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/CreateRoom.vue
@@ -55,6 +55,13 @@
               :dark="true"
               color="#0f4c81"
             >创建会议</v-btn>
+            <v-btn
+              style="margin-left: 20px;"
+              large
+              @click="create(true)"
+              :dark="true"
+              color="#0f4c81"
+            >分享屏幕</v-btn>
           </v-card-actions>
         </v-container>
       </v-card>
@@ -83,7 +90,7 @@ export default {
     show() {
       this.dialog = true
     },
-    create() {
+    create(flag) {
       if (!this.nickName) {
         this.errorMsg = '请输入昵称'
         return
@@ -110,10 +117,11 @@ export default {
             query: {
               password: this.joinPassword || '',
               code: res.data.code,
-              name: this.nickName,
+              name: flag?this.nickName+'的屏幕':this.nickName,
               // as the initiator
               title: this.title,
-              role: 0
+              role: 0,
+              type: flag?'screen':''
             }
           })
         } else {

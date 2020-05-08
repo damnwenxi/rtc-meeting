@@ -2,7 +2,7 @@
  * @Date         : 2020-04-16 12:11:38
  * @Author       : kefeng
  * @LastEditors  : kefeng
- * @LastEditTime : 2020-05-07 22:00:56
+ * @LastEditTime : 2020-05-08 21:46:18
  * @FilePath     : /rtc-meeting/rtc-front/src/components/FileManager.vue
  -->
 <template>
@@ -66,7 +66,7 @@ export default {
       deep: true,
       handler: function(list) {
         list.forEach(item => {
-          item.pc.addEventListener('datachannel', event => {
+          item.pc && item.pc.addEventListener('datachannel', event => {
             let receiveChannel = event.channel;
             receiveChannel.binaryType = 'arraybuffer';
             receiveChannel.onmessage = event => {
