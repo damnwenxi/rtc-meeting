@@ -1,13 +1,13 @@
 <!--
  * @Author: kefeng
  * @Date: 2020-02-22 21:43:49
- * @LastEditTime : 2020-04-14 22:59:08
+ * @LastEditTime : 2020-05-10 09:30:33
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/components/NavBar.vue
  -->
 <template>
-  <v-app-bar absolute color="white" hide-on-scroll scroll-target="#container">
+  <v-app-bar id="top" absolute color="white" hide-on-scroll scroll-target="#container">
     <v-icon @click="goHome()">mdi-domain</v-icon>
     <v-toolbar-title class="title">RTC meeting</v-toolbar-title>
 

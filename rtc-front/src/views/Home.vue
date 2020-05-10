@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:01:05
- * @LastEditTime : 2020-05-07 21:25:56
+ * @LastEditTime : 2020-05-10 09:44:12
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Home.vue
@@ -34,6 +34,44 @@
         <p class="label">活跃用户</p>
         <span class="number">453人</span>
       </div>
+    </div>
+
+    <div class="introduce">
+      <h2 class="introduce-title">基于WebRTC的实时音视频会议系统</h2>
+      <p class="introduce-desc">利用信令服务器在浏览器之间建立点对点的连接实现高效数据交换</p>
+
+      <div class="item-list">
+        <div class="can-item">
+          <img style="padding: 16px" src="../assets/img/live.png" alt="">
+          <p class="text">实时音视频</p>
+        </div>
+
+        <div class="can-item">
+          <img style="padding: 24px" src="../assets/img/screen.png" alt="">
+          <p class="text">屏幕分享</p>
+        </div>
+
+        <div class="can-item">
+          <img src="../assets/img/chat.png" alt="">
+          <p class="text">实时文本信息</p>
+        </div>
+
+        <div class="can-item">
+          <img style="padding: 8px" src="../assets/img/file.png" alt="">
+          <p class="text">文件互传</p>
+        </div>
+      </div>
+
+      <a href="#top" class="back-top">
+        现在演示
+      </a>
+    </div>
+
+    <div class="footer">
+      <v-divider></v-divider>
+      <p class="copyright">
+        Copyright © 2020 kefeng1026@gmail.com
+      </p>
     </div>
 
     <JoinRoom @tip="appTip($event)" ref="joinModal" />
@@ -140,6 +178,54 @@ export default {
       font-size: 20px;
       font-weight: 600;
     }
+  }
+
+  .introduce {
+    width: 100%;
+    text-align: center;
+
+    &-title{
+      font-size: 36px;
+      margin: 100px 0;
+    }
+
+    &-desc {
+      font-size: 24px;
+      color: #789;
+      font-weight: 900;
+      margin-bottom: 80px;
+    }
+
+    .item-list {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .can-item {
+        margin: 0 32px;
+        img{
+          width: 200px;
+          height: 200px;
+        }
+        .text{
+          color: #789;
+        }
+      }
+    }
+
+    .back-top{
+      display: inline-block;
+      margin: 60px 0;
+    }
+  }
+
+  .copyright{
+    text-align: center;
+    color: #789;
+    font-size: 14px;
+    line-height: 96px;
+    margin: 0;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-02-22 22:21:25
- * @LastEditTime : 2020-05-09 01:04:00
+ * @LastEditTime : 2020-05-10 09:03:43
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/rtc-front/src/views/Room.vue
@@ -150,7 +150,7 @@ export default {
           width: { min: 1024, ideal: 1280, max: 1920 },
           height: { min: 480, ideal: 720, max: 1080 }
         },
-        audio: false
+        // audio: true
       },
 
       localStream: null,
@@ -451,7 +451,8 @@ export default {
     },
     screenShare() {
       const option = {
-        video: true
+        video: true,
+        // audio: true
       }
       navigator.mediaDevices
         .getDisplayMedia(option)
@@ -576,6 +577,20 @@ export default {
           })
         }
       }
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log('ice changed:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: data.user_name,
+            room_id: this.code,
+            user_role: this.role,
+            user_number: this.number
+          })
+        }
+      }
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(data.user_number).srcObject = event.stream
@@ -628,7 +643,7 @@ export default {
       peerConnection.addStream(this.localStream)
 
       peerConnection.onicecandidate = event => {
-        console.log('ice 成功获取:')
+        console.log('ice success:')
         if (event && event.candidate) {
           socket.send({
             type: 'icecandidate',
@@ -641,6 +656,22 @@ export default {
           })
         }
       }
+
+      peerConnection.oniceconnectionstatechange = event => {
+        console.log('ice changed:')
+        if (event && event.candidate) {
+          socket.send({
+            type: 'icecandidate',
+            icecandidate: event.candidate,
+            from: this.name,
+            to: user.name,
+            room_id: this.code,
+            user_role: this.role,
+            user_number: this.number
+          })
+        }
+      }
+
       peerConnection.onaddstream = event => {
         if (event && event.stream) {
           document.getElementById(user.number).srcObject = event.stream

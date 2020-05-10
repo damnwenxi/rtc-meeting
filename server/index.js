@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-02-27 21:52:57
- * @LastEditTime : 2020-05-07 21:36:14
+ * @LastEditTime : 2020-05-09 22:35:24
  * @LastEditors  : kefeng
  * @Description: In User Settings Edit
  * @FilePath     : /rtc-meeting/server/index.js
@@ -11,11 +11,11 @@ const app = express()
 const fs = require('fs')
 const pk = fs.readFileSync('./cert/2_itsadomain.xyz.key')
 const pc = fs.readFileSync('./cert/1_itsadomain.xyz_bundle.crt')
-// const https = require('https').createServer({
-//   key: pk,
-//   cert: pc
-// },app)
-const https = require('http').createServer(app)
+const https = require('https').createServer({
+  key: pk,
+  cert: pc
+},app)
+// const https = require('http').createServer(app)
 
 const io = require('socket.io')(https)
 const bodyParser = require('body-parser')
@@ -29,11 +29,15 @@ app.use(bodyParser.json())
 app.use(jwtAuth)
 
 app.use('/', express.static('dist'))
-// app.use('/api/user', user)
-// app.use('/api/room', room)
-app.use('/user', user)
-app.use('/room', room)
 
+app.use('/api/user', user)
+app.use('/api/room', room)
+// app.use('/user', user)
+// app.use('/room', room)
+
+app.get('/', (req, res) => {
+  res.send('./dist/index.html')
+})
 
 io.on('connection', socket => {
 
